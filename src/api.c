@@ -52,6 +52,7 @@ EXPORT void CALL DllAbout(HWND hParent)
 
 EXPORT void CALL DllConfig(HWND hParent)
 {
+    open_controller();
     config_window();
 }
 

@@ -9,6 +9,7 @@
 #include <stdarg.h>
 #include <time.h>
 #include <limits.h>
+#include "gui.h"
 
 FILE *logfile;
 char dbpath[PATH_MAX];
@@ -218,6 +219,7 @@ void dlog(const char *fmt, ...)
     time_t rawtime;
     time(&rawtime);
     struct tm *timeinfo = localtime(&rawtime);
+    char buf[1024];
 
     char timestr[9];
     strftime(timestr, sizeof(timestr), "%X", timeinfo);
@@ -227,6 +229,8 @@ void dlog(const char *fmt, ...)
     va_list args;
     va_start(args, fmt);
     vfprintf(logfile, fmt, args);
+    vsprintf(buf, fmt, args);
+    write_log(buf);
     va_end(args);
 
     fprintf(logfile, "\n");

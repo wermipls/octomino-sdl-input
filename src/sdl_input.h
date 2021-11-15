@@ -5,6 +5,7 @@
 #ifndef OCTOMINO_SDL_INPUT_H_
 #define OCTOMINO_SDL_INPUT_H_
 
+#include <SDL2/SDL_gamecontroller.h>
 #include <SDL2/SDL_version.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -12,6 +13,7 @@
 
 extern FILE *logfile;
 extern char dbpath[PATH_MAX];
+extern SDL_GameController *con;
 
 #define STRINGIFY(x) #x
 #define TOSTRING(x) STRINGIFY(x)
