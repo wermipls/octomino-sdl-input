@@ -19,7 +19,8 @@ CFLAGS   = -std=c11 -O2 -MMD -flto -fvisibility=hidden \
            -DPLUGIN_VERSION=\""$(VERSION)"\" \
            -DPLUGIN_REPO=\""$(REPO)"\"
 LDFLAGS  = -shared -static-libgcc -static \
-           -lshlwapi `sdl2-config --static-libs`
+           -lshlwapi `sdl2-config --static-libs` \
+		   -lopengl32
 
 $(BIN): $(SRC:.c=.o)
 	$(CC) $(CFLAGS) $^ $(LDFLAGS) -o $@

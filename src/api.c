@@ -9,6 +9,7 @@
 #include <math.h>
 #include "zilmar_controller_1.0.h"
 #include "sdl_input.h"
+#include "gui.h"
 
 BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpReserved)
 {
@@ -49,7 +50,10 @@ EXPORT void CALL DllAbout(HWND hParent)
     );
 }
 
-//EXPORT void CALL DllConfig(HWND hParent) {}
+EXPORT void CALL DllConfig(HWND hParent)
+{
+    config_window();
+}
 
 //EXPORT void CALL DllTest(HWND hParent) {}
 
