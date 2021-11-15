@@ -9,6 +9,8 @@ static  char logbuf[64000];
 static   int logbuf_updated = 0;
 static float bg[3] = { 90, 95, 100 };
 
+static int window_open = 0;
+static mu_Context *ctx;
 
 static void write_log(const char *text) {
     if (logbuf[0]) { strcat(logbuf, "\n"); }
@@ -234,11 +236,16 @@ static int text_height(mu_Font font) {
 
 
 void config_window() {
-    /* init SDL and renderer */
+    if (window_open)
+        return;
+
+    window_open = 1;
+
+    /* init renderer */
     r_init();
 
     /* init microui */
-    mu_Context *ctx = malloc(sizeof(mu_Context));
+    ctx = malloc(sizeof(mu_Context));
     mu_init(ctx);
     ctx->text_width = text_width;
     ctx->text_height = text_height;
@@ -249,7 +256,7 @@ void config_window() {
         SDL_Event e;
         while (SDL_PollEvent(&e)) {
             switch (e.type) {
-                case SDL_QUIT: r_close(); break;
+                case SDL_QUIT: gui_deinit(); return;
                 case SDL_MOUSEMOTION: mu_input_mousemove(ctx, e.motion.x, e.motion.y); break;
                 case SDL_MOUSEWHEEL: mu_input_scroll(ctx, 0, e.wheel.y * -30); break;
                 case SDL_TEXTINPUT: mu_input_text(ctx, e.text.text); break;
@@ -288,4 +295,11 @@ void config_window() {
         }
         r_present();
     }
+}
+
+void gui_deinit()
+{
+    window_open = 0;
+    free(ctx);
+    r_close();
 }

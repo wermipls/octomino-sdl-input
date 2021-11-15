@@ -4,3 +4,4 @@
 //#include "microui.h"
 
 void config_window();
+void gui_deinit();
