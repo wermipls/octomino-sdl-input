@@ -4,6 +4,7 @@
 #include "microui.h"
 #include "gui.h"
 #include "sdl_input.h"
+#include "config.h"
 
 
 static  char logbuf[64000];
@@ -20,8 +21,27 @@ void write_log(char *text) {
     logbuf_updated = 1;
 }
 
-static void log_panel(mu_Context *ctx) {
+static int uint8_slider(mu_Context *ctx, unsigned char *value, int low, int high) {
+    static float tmp;
+    mu_push_id(ctx, &value, sizeof(value));
+    tmp = *value;
+    int res = mu_slider_ex(ctx, &tmp, low, high, 0, "%.0f", MU_OPT_ALIGNCENTER);
+    *value = tmp;
+    mu_pop_id(ctx);
+    return res;
+}
 
+static int uint_slider(mu_Context *ctx, unsigned int *value, int low, int high) {
+    static float tmp;
+    mu_push_id(ctx, &value, sizeof(value));
+    tmp = *value;
+    int res = mu_slider_ex(ctx, &tmp, low, high, 0, "%.0f", MU_OPT_ALIGNCENTER);
+    *value = tmp;
+    mu_pop_id(ctx);
+    return res;
+}
+
+static void log_panel(mu_Context *ctx) {
     if (mu_header(ctx, "Log")) {
         /* output text panel */
         mu_layout_row(ctx, 1, (int[]) { -1 }, -25);
@@ -51,36 +71,65 @@ static void log_panel(mu_Context *ctx) {
     }
 }
 
-void coninfo_panel(mu_Context *ctx)
+static void coninfo_panel(mu_Context *ctx)
 {
-        if (mu_header_ex(ctx, "Controller info", MU_OPT_EXPANDED)) {
-            mu_Container *win = mu_get_current_container(ctx);
-            char buf[64];
-            const int widths[] = {150, -1};
-            mu_layout_row(ctx, 2, widths, 0);
+    if (mu_header_ex(ctx, "Controller info", MU_OPT_EXPANDED)) {
+        mu_Container *win = mu_get_current_container(ctx);
+        char buf[64];
+        const int widths[] = {150, -1};
+        mu_layout_row(ctx, 2, widths, 0);
 
-            
-            mu_label(ctx,"Name");
-            if (con != NULL) {
-                char *name = SDL_GameControllerName(con);
-                if (*name != NULL) {
-                    mu_label(ctx, name);
-                } 
-            } else {
-                mu_label(ctx, not_available);
-            }
-
-            mu_label(ctx,"GameController mapping");
-            if (con != NULL) {
-                char *mapping = SDL_GameControllerMapping(con);
-                if (*mapping != NULL) {
-                    mu_label(ctx, mapping);
-                    SDL_free(mapping);
-                } 
-            } else {
-                mu_label(ctx, not_available);
-            }
+        
+        mu_label(ctx,"Name");
+        if (con != NULL) {
+            char *name = SDL_GameControllerName(con);
+            if (*name != NULL) {
+                mu_label(ctx, name);
+            } 
+        } else {
+            mu_label(ctx, not_available);
         }
+
+        mu_label(ctx,"GameController mapping");
+        if (con != NULL) {
+            char *mapping = SDL_GameControllerMapping(con);
+            if (*mapping != NULL) {
+                mu_label(ctx, mapping);
+                SDL_free(mapping);
+            } 
+        } else {
+            mu_label(ctx, not_available);
+        }
+    }
+}
+
+static void analog_panel(mu_Context *ctx)
+{
+    if (mu_header_ex(ctx, "Analog stick", MU_OPT_EXPANDED)) {
+        mu_Container *win = mu_get_current_container(ctx);
+        const int widths[] = {150, -1};
+        mu_layout_row(ctx, 2, widths, 0);
+
+        // deadzone slider
+        mu_label(ctx, "Deadzone");
+        float *dz = &concfg.deadzone;
+        mu_slider(ctx, dz, 0.f, 1.f);
+
+        // outer edge
+        mu_label(ctx, "Outer edge");
+        float *edge = &concfg.outer_edge;
+        mu_slider(ctx, edge, 0.f, 1.f);
+
+        // range
+        mu_label(ctx, "Range");
+        float *range = &concfg.range;
+        uint_slider(ctx, range, 0, 127);
+
+        // clamping checkbox
+        mu_label(ctx, "Range clamping");
+        int *clamp = &concfg.is_clamped;
+        mu_checkbox(ctx, "", clamp);
+    }
 }
 
 static void test_window(mu_Context *ctx) {
@@ -90,23 +139,12 @@ static void test_window(mu_Context *ctx) {
         mu_Container *win = mu_get_current_container(ctx);
 
         coninfo_panel(ctx);
+        analog_panel(ctx);
         log_panel(ctx);
 
         mu_end_window(ctx);
     }
 }
-
-
-static int uint8_slider(mu_Context *ctx, unsigned char *value, int low, int high) {
-    static float tmp;
-    mu_push_id(ctx, &value, sizeof(value));
-    tmp = *value;
-    int res = mu_slider_ex(ctx, &tmp, low, high, 0, "%.0f", MU_OPT_ALIGNCENTER);
-    *value = tmp;
-    mu_pop_id(ctx);
-    return res;
-}
-
 
 static void style_window(mu_Context *ctx) {
     static struct { const char *label; int idx; } colors[] = {

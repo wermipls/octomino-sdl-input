@@ -10,6 +10,7 @@
 #include "zilmar_controller_1.0.h"
 #include "sdl_input.h"
 #include "gui.h"
+#include "config.h"
 
 BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpReserved)
 {
@@ -24,6 +25,9 @@ BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpReserved)
         GetModuleFileNameA(hinstDLL, dbpath, sizeof(dbpath));
         PathRemoveFileSpecA(dbpath);
         PathCombineA(dbpath, dbpath, "gamecontrollerdb.txt");
+
+        // init config
+        config_initialize(&concfg);
 
         break;
     case DLL_PROCESS_DETACH:
@@ -72,14 +76,25 @@ EXPORT void CALL GetDllInfo(PLUGIN_INFO * PluginInfo)
 
 static inline void n64_analog(BUTTONS *Keys, int16_t x, int16_t y)
 {
-    x = ((int32_t)x * 80) / 32767;
-    y = ((int32_t)y * 80) / 32767;
+    x = ((int32_t)x * concfg.range) / 32767;
+    y = ((int32_t)y * concfg.range) / 32767;
 
-    int16_t lim_x = 80 - (int16_t)round(abs(sclamp(y, -70, 70)) / 7. - 1. / 7);
-    int16_t lim_y = 80 - (int16_t)round(abs(sclamp(x, -70, 70)) / 7. - 1. / 7);
+    int diagonal = concfg.range * 70 / 80;
+    int16_t lim_x = concfg.range - (int16_t)round(abs(sclamp(y, -diagonal, diagonal)) / 7. - 1. / 7);
+    int16_t lim_y = concfg.range - (int16_t)round(abs(sclamp(x, -diagonal, diagonal)) / 7. - 1. / 7);
 
-    Keys->Y_AXIS = sclamp(x, -lim_x, lim_x);
-    Keys->X_AXIS = -sclamp(y, -lim_y, lim_y);
+    if (concfg.is_clamped) {
+        if (lim_x < x) {
+            x = lim_x;
+            y = y * (lim_x / x);
+        } else if (lim_y < y) {
+            y = lim_y;
+            x = x * (lim_y / y);
+        }
+    }
+
+    Keys->Y_AXIS = x;
+    Keys->X_AXIS = -y;
 }
 
 EXPORT void CALL GetKeys(int Control, BUTTONS *Keys)
@@ -105,10 +120,14 @@ EXPORT void CALL GetKeys(int Control, BUTTONS *Keys)
     Keys->R_TRIG = threshold(i.artrig, 0.25f) > 0 || i.rshoul;
     Keys->L_TRIG = i.lshoul;
 
+    int16_t x = i.alx;
+    int16_t y = i.aly;
+    scale_and_limit(&x, &y, concfg.deadzone, concfg.outer_edge);
+
     n64_analog(
         Keys,
-        scale_and_limit(i.alx, 0.05f, 0.8f),
-        scale_and_limit(i.aly, 0.05f, 0.8f)
+        x,
+        y
     );
 }
 

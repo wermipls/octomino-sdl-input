@@ -118,18 +118,37 @@ int16_t threshold(int16_t val, float cutoff)
         return val <= (cutoff * 32767) ? 0 : val;
 }
 
-int16_t scale_and_limit(int16_t val, float dz, float edge)
+void scale_and_limit(int16_t *x, int16_t *y, float dz, float edge)
 {
     // get abs value between 0 and 1 relative to deadzone and edge
-    float f = (abs(val) - dz * 32767) / (edge * 32767 - dz * 32767);
+    float fx = (abs(*x) - dz * 32767) / (edge * 32767 - dz * 32767);
+    float fy = (abs(*y) - dz * 32767) / (edge * 32767 - dz * 32767);
 
     // out of range
-    if (f > 1.f) f = 1.f;
-    else if (f <= 0.f) return 0.f;
+    if (fx > 1.f) {
+        fy = fy * (1.f / fx);
+        fx = 1.f;
+    } else if (fy > 1.f) {
+        fx = fx * (1.f / fy);
+        fy = 1.f;
+    }
 
-    float sign = abs(val) / val;
+    float sign_x = 0;
+    float sign_y = 0;
 
-    return sign * f * 32767;
+    // deadzone
+    if (fy <= 0.f)
+        fy = 0.f;
+    else
+        sign_y = abs(*y) / *y;
+
+    if (fx <= 0.f)
+        fx = 0.f;
+    else 
+        sign_x = abs(*x) / *x;
+
+    *x = sign_x * fx * 32767;
+    *y = sign_y * fy * 32767;
 }
 
 int16_t sclamp(int16_t val, int16_t min, int16_t max)
