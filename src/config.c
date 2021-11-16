@@ -33,6 +33,34 @@ static int float2str(float f, char *dest)
     return sprintf(dest, "%f", f);
 }
 
+static void set_property(ini_t *ini, int section_n, const char property[], char prop_val[])
+{
+    int prop_n = ini_find_property(ini, section_n, property, 0);
+    if (prop_n == INI_NOT_FOUND) {
+        ini_property_add(ini, section_n, property, 0, prop_val, 0);
+        dlog("INI: property %s not found, initializing with %s", property, prop_val);
+    } else {
+        ini_property_value_set(ini, section_n, prop_n, prop_val, 0);
+        dlog("INI: property %s found, setting value to %s", property, prop_val);
+    }
+}
+
+static void set_property_float(ini_t *ini, int section_n, const char property[], float val)
+{
+    char prop_val[64];
+    float2str(val, prop_val);
+
+    set_property(ini, section_n, property, prop_val);
+}
+
+static void set_property_int(ini_t *ini, int section_n, const char property[], int val)
+{
+    char prop_val[64];
+    itoa(val, prop_val, 10);
+
+    set_property(ini, section_n, property, prop_val);
+}
+
 static float read_property_float(ini_t *ini, int section_n, const char property[], float defaultval)
 {
     int prop_n = ini_find_property(ini, section_n, property, 0);
@@ -89,6 +117,30 @@ static void config_load_con(ControllerConfig *cfg, ini_t *ini, char con_id)
     return;
 }
 
+static void config_save_con(ControllerConfig *cfg, ini_t *ini, char con_id)
+{
+    // find section
+    char section[] = {"controller_0"};
+    section[strlen(section) - 1] = con_id;
+
+    int section_n = ini_find_section(ini, section, 0);
+    if (section_n == INI_NOT_FOUND) {
+        dlog("INI: section %s not found", section);
+        section_n = ini_section_add(ini, section, 0);
+    }
+
+    int prop_n;
+    const char *prop_val;
+
+    // read properties
+    set_property_float(ini, section_n, "deadzone", cfg->deadzone);
+    set_property_float(ini, section_n, "outer_edge", cfg->outer_edge);
+    set_property_int(ini, section_n, "range", cfg->range);
+    set_property_int(ini, section_n, "is_clamped", cfg->is_clamped);
+
+    return;
+}
+
 void config_load()
 {
     FILE *configfile = fopen(configpath, "rb");
@@ -99,6 +151,25 @@ void config_load()
     fclose(configfile);
 
     config_load_con(&concfg, configini, '0');
+}
+
+void config_save()
+{
+    if (configini == NULL) {
+        config_initialize();
+    } else {
+        config_save_con(&concfg, configini, '0');
+    }
+
+    int size = ini_save(configini, NULL, 0);
+    char *data = (char*) malloc(size);
+    size = ini_save(configini, data, size);
+
+    FILE *configfile = fopen(configpath, "wb");
+    fwrite(data, 1, size, configfile);
+    fclose(configfile);
+
+    free(data);
 }
 
 void config_initialize()

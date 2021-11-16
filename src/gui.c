@@ -148,7 +148,7 @@ static void configfile_panel(mu_Context *ctx)
         mu_label(ctx, "");
         // save
         if (mu_button(ctx, "Save config")) {
-            dlog("not implemented yet!");
+            config_save();
         }
         // load
         if (mu_button(ctx, "Reload config")) {
