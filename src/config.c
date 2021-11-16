@@ -30,7 +30,7 @@ static ini_t *ini_load_file(FILE *f)
 
 static int float2str(float f, char *dest)
 {
-    return sprintf(dest, "%f", dest);
+    return sprintf(dest, "%f", f);
 }
 
 static float read_property_float(ini_t *ini, int section_n, const char property[], float defaultval)
