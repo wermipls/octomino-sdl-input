@@ -132,6 +132,31 @@ static void analog_panel(mu_Context *ctx)
     }
 }
 
+static void configfile_panel(mu_Context *ctx)
+{
+    if (mu_header_ex(ctx, "Configuration file", MU_OPT_EXPANDED)) {
+        mu_Container *win = mu_get_current_container(ctx);
+        const int widths[] = {150, -1};
+        mu_layout_row(ctx, 2, widths, 0);
+
+        const char curfile[] = "Current file";
+        mu_label(ctx, curfile);
+        mu_text(ctx, configpath);
+
+        const int widths2[] = {150, 125, 125};
+        mu_layout_row(ctx, 3, widths2, 0);
+        mu_label(ctx, "");
+        // save
+        if (mu_button(ctx, "Save config")) {
+            dlog("not implemented yet!");
+        }
+        // load
+        if (mu_button(ctx, "Reload config")) {
+            config_load();
+        }
+    }
+}
+
 static void test_window(mu_Context *ctx) {
     /* do window */
     int opt = MU_OPT_NOINTERACT | MU_OPT_NOTITLE;
@@ -140,6 +165,7 @@ static void test_window(mu_Context *ctx) {
 
         coninfo_panel(ctx);
         analog_panel(ctx);
+        configfile_panel(ctx);
         log_panel(ctx);
 
         mu_end_window(ctx);

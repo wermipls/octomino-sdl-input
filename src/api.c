@@ -28,13 +28,11 @@ BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpReserved)
 
         // make/load a config file
         CreateDirectoryA("Config", NULL);
-        configfile = fopen("Config\\" PLUGIN_NAME ".ini", "rb+");
         config_initialize(&concfg);
 
         break;
     case DLL_PROCESS_DETACH:
         fclose(logfile);
-        fclose(configfile);
         break;
     }
     return TRUE;

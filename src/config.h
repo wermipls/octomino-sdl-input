@@ -10,6 +10,7 @@ typedef struct ControllerConfig
 
 extern ControllerConfig concfg;
 
-extern FILE *configfile;
+extern char configpath[];
 
-void config_initialize(ControllerConfig *cfg);
+void config_load();
+void config_initialize();

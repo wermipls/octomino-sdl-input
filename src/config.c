@@ -5,7 +5,7 @@
 #include "sdl_input.h"
 
 ControllerConfig concfg;
-FILE *configfile;
+char configpath[PATH_MAX] = "Config\\" PLUGIN_NAME ".ini";
 
 ini_t *configini;
 
@@ -69,7 +69,7 @@ static void config_load_con(ControllerConfig *cfg, ini_t *ini, char con_id)
 {
     // find section
     char section[] = {"controller_0"};
-    //section[strlen(section)] = con_id;
+    section[strlen(section) - 1] = con_id;
 
     int section_n = ini_find_section(ini, section, 0);
     if (section_n == INI_NOT_FOUND) {
@@ -89,16 +89,25 @@ static void config_load_con(ControllerConfig *cfg, ini_t *ini, char con_id)
     return;
 }
 
-void config_initialize(ControllerConfig *cfg)
+void config_load()
 {
-    // default values
-    cfg->deadzone = 0.05;
-    cfg->range = 80;
-    cfg->outer_edge = 0.95;
-    cfg->is_clamped = 0;
-
-    // load file contents
+    FILE *configfile = fopen(configpath, "rb");
+    if (configini != NULL) {
+        ini_destroy(configini);
+    }
     configini = ini_load_file(configfile);
+    fclose(configfile);
 
     config_load_con(&concfg, configini, '0');
+}
+
+void config_initialize()
+{
+    // default values
+    concfg.deadzone = 0.05;
+    concfg.range = 80;
+    concfg.outer_edge = 0.95;
+    concfg.is_clamped = 0;
+
+    config_load();
 }
