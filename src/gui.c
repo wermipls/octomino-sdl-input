@@ -44,7 +44,7 @@ static int uint_slider(mu_Context *ctx, unsigned int *value, int low, int high) 
 static void log_panel(mu_Context *ctx) {
     if (mu_header(ctx, "Log")) {
         /* output text panel */
-        mu_layout_row(ctx, 1, (int[]) { -1 }, -25);
+        mu_layout_row(ctx, 1, (int[]) { -1 }, 300);
         mu_begin_panel(ctx, "Log Output");
         mu_Container *panel = mu_get_current_container(ctx);
         mu_layout_row(ctx, 1, (int[]) { -1 }, -1);
@@ -53,20 +53,6 @@ static void log_panel(mu_Context *ctx) {
         if (logbuf_updated) {
             panel->scroll.y = panel->content_size.y;
             logbuf_updated = 0;
-        }
-
-        /* input textbox + submit button */
-        static char buf[128];
-        int submitted = 0;
-        mu_layout_row(ctx, 2, (int[]) { -70, -1 }, 0);
-        if (mu_textbox(ctx, buf, sizeof(buf)) & MU_RES_SUBMIT) {
-            mu_set_focus(ctx, ctx->last_id);
-            submitted = 1;
-        }
-        if (mu_button(ctx, "Submit")) { submitted = 1; }
-        if (submitted) {
-            write_log(buf);
-            buf[0] = '\0';
         }
     }
 }
@@ -105,7 +91,7 @@ static void coninfo_panel(mu_Context *ctx)
 
 static void analog_panel(mu_Context *ctx, ControllerConfig *cfg)
 {
-    if (mu_header_ex(ctx, "Analog stick", MU_OPT_EXPANDED)) {
+    if (mu_begin_treenode_ex(ctx, "Analog stick", MU_OPT_EXPANDED)) {
         mu_Container *win = mu_get_current_container(ctx);
         const int widths[] = {150, -1};
         mu_layout_row(ctx, 2, widths, 0);
@@ -129,6 +115,58 @@ static void analog_panel(mu_Context *ctx, ControllerConfig *cfg)
         mu_label(ctx, "Range clamping");
         int *clamp = &cfg->is_clamped;
         mu_checkbox(ctx, "", clamp);
+
+        mu_end_treenode(ctx);
+    }
+}
+
+static void binding_row(mu_Context *ctx, const char name[])
+{
+    mu_label(ctx, name);
+
+    mu_button(ctx, "Not set");
+
+    mu_button(ctx, "Not set");
+}
+
+static void binding_panel(mu_Context *ctx, ControllerConfig *cfg)
+{
+    if (mu_begin_treenode_ex(ctx, "Bindings", MU_OPT_EXPANDED)) {
+        const int widths[] = {150, 125, 125};
+        mu_layout_row(ctx, 3, widths, 0);
+
+        mu_label(ctx, "");
+        mu_draw_control_text(ctx, "Primary", mu_layout_next(ctx), MU_COLOR_TEXT, MU_OPT_ALIGNCENTER);
+        mu_draw_control_text(ctx, "Secondary", mu_layout_next(ctx), MU_COLOR_TEXT, MU_OPT_ALIGNCENTER);
+
+        binding_row(ctx, "A");
+        binding_row(ctx, "B");
+        binding_row(ctx, "Z");
+        binding_row(ctx, "L");
+        binding_row(ctx, "R");
+        binding_row(ctx, "Start");
+        binding_row(ctx, "C-Up");
+        binding_row(ctx, "C-Down");
+        binding_row(ctx, "C-Left");
+        binding_row(ctx, "C-Right");
+        binding_row(ctx, "D-Pad Up");
+        binding_row(ctx, "D-Pad Down");
+        binding_row(ctx, "D-Pad Left");
+        binding_row(ctx, "D-Pad Right");
+        binding_row(ctx, "Analog Up");
+        binding_row(ctx, "Analog Down");
+        binding_row(ctx, "Analog Left");
+        binding_row(ctx, "Analog Right");
+
+        mu_end_treenode(ctx);
+    }
+}
+
+static void controller_panel(mu_Context *ctx, ControllerConfig *cfg, const char name[], int opt)
+{
+    if (mu_header_ex(ctx, name, opt)) {
+        binding_panel(ctx, cfg);
+        analog_panel(ctx, cfg);
     }
 }
 
@@ -164,7 +202,7 @@ static void test_window(mu_Context *ctx) {
         mu_Container *win = mu_get_current_container(ctx);
 
         coninfo_panel(ctx);
-        analog_panel(ctx, &concfg);
+        controller_panel(ctx, &concfg, "Controller 1 settings", MU_OPT_EXPANDED);
         configfile_panel(ctx);
         log_panel(ctx);
 
