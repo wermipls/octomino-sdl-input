@@ -48,12 +48,12 @@ void deinit(void)
     if (!initialized) return;
     dlog("Deinitializing");
 
-    close_controller();
+    con_close();
     SDL_Quit();
     initialized = 0;
 }
 
-void open_controller(void)
+void con_open(void)
 {
     if (!initialized) try_init();
     if (!initialized || con != NULL) return;
@@ -85,7 +85,7 @@ void open_controller(void)
             {
                 dlog("        This controller has no mapping! Closing it");
                 // skip this controller
-                close_controller();
+                con_close();
                 continue;
             }
 
@@ -99,7 +99,7 @@ void open_controller(void)
         dlog("    Couldn't find a viable controller :(");
 }
 
-void close_controller(void)
+void con_close(void)
 {
     if (!initialized && con != NULL) con = NULL;
     if (!initialized || con == NULL) return;
@@ -158,7 +158,7 @@ int16_t sclamp(int16_t val, int16_t min, int16_t max)
     return val;
 }
 
-void get_inputs(inputs_t *i)
+void con_get_inputs(inputs_t *i)
 {
     if (!initialized)
     {
@@ -175,7 +175,7 @@ void get_inputs(inputs_t *i)
             if (con == NULL)
             {
                 dlog("    ...and there is no active controller");
-                open_controller();
+                con_open();
             }
             else
                 dlog("    ...but there is already an active controller");
@@ -185,8 +185,8 @@ void get_inputs(inputs_t *i)
             if (e.cdevice.which == joy_inst)
             {
                 dlog("    ...it was the active controller");
-                close_controller();
-                open_controller();
+                con_close();
+                con_open();
             }
             else
                 dlog("    ...it was not the active controller");
@@ -194,43 +194,43 @@ void get_inputs(inputs_t *i)
         }
 
     if (con != NULL)
-        write_inputs(i);
+        con_write_inputs(i);
 }
 
-static inline uint8_t get_but(SDL_GameControllerButton b)
+static inline uint8_t con_get_but(SDL_GameControllerButton b)
 {
     return SDL_GameControllerGetButton(con, b);
 }
 
-static inline int16_t get_axis(SDL_GameControllerAxis a)
+static inline int16_t con_get_axis(SDL_GameControllerAxis a)
 {
     return sclamp(SDL_GameControllerGetAxis(con, a), -32767, 32767);
 }
 
-void write_inputs(inputs_t *i)
+void con_write_inputs(inputs_t *i)
 {
-    i->a      = get_but(SDL_CONTROLLER_BUTTON_A);
-    i->b      = get_but(SDL_CONTROLLER_BUTTON_B);
-    i->x      = get_but(SDL_CONTROLLER_BUTTON_X);
-    i->y      = get_but(SDL_CONTROLLER_BUTTON_Y);
-    i->back   = get_but(SDL_CONTROLLER_BUTTON_BACK);
-    i->guide  = get_but(SDL_CONTROLLER_BUTTON_GUIDE);
-    i->start  = get_but(SDL_CONTROLLER_BUTTON_START);
-    i->lstick = get_but(SDL_CONTROLLER_BUTTON_LEFTSTICK);
-    i->rstick = get_but(SDL_CONTROLLER_BUTTON_RIGHTSTICK);
-    i->lshoul = get_but(SDL_CONTROLLER_BUTTON_LEFTSHOULDER);
-    i->rshoul = get_but(SDL_CONTROLLER_BUTTON_RIGHTSHOULDER);
-    i->dup    = get_but(SDL_CONTROLLER_BUTTON_DPAD_UP);
-    i->ddown  = get_but(SDL_CONTROLLER_BUTTON_DPAD_DOWN);
-    i->dleft  = get_but(SDL_CONTROLLER_BUTTON_DPAD_LEFT);
-    i->dright = get_but(SDL_CONTROLLER_BUTTON_DPAD_RIGHT);
+    i->a      = con_get_but(SDL_CONTROLLER_BUTTON_A);
+    i->b      = con_get_but(SDL_CONTROLLER_BUTTON_B);
+    i->x      = con_get_but(SDL_CONTROLLER_BUTTON_X);
+    i->y      = con_get_but(SDL_CONTROLLER_BUTTON_Y);
+    i->back   = con_get_but(SDL_CONTROLLER_BUTTON_BACK);
+    i->guide  = con_get_but(SDL_CONTROLLER_BUTTON_GUIDE);
+    i->start  = con_get_but(SDL_CONTROLLER_BUTTON_START);
+    i->lstick = con_get_but(SDL_CONTROLLER_BUTTON_LEFTSTICK);
+    i->rstick = con_get_but(SDL_CONTROLLER_BUTTON_RIGHTSTICK);
+    i->lshoul = con_get_but(SDL_CONTROLLER_BUTTON_LEFTSHOULDER);
+    i->rshoul = con_get_but(SDL_CONTROLLER_BUTTON_RIGHTSHOULDER);
+    i->dup    = con_get_but(SDL_CONTROLLER_BUTTON_DPAD_UP);
+    i->ddown  = con_get_but(SDL_CONTROLLER_BUTTON_DPAD_DOWN);
+    i->dleft  = con_get_but(SDL_CONTROLLER_BUTTON_DPAD_LEFT);
+    i->dright = con_get_but(SDL_CONTROLLER_BUTTON_DPAD_RIGHT);
 
-    i->alx    = get_axis(SDL_CONTROLLER_AXIS_LEFTX);
-    i->aly    = get_axis(SDL_CONTROLLER_AXIS_LEFTY);
-    i->arx    = get_axis(SDL_CONTROLLER_AXIS_RIGHTX);
-    i->ary    = get_axis(SDL_CONTROLLER_AXIS_RIGHTY);
-    i->altrig = get_axis(SDL_CONTROLLER_AXIS_TRIGGERLEFT);
-    i->artrig = get_axis(SDL_CONTROLLER_AXIS_TRIGGERRIGHT);
+    i->alx    = con_get_axis(SDL_CONTROLLER_AXIS_LEFTX);
+    i->aly    = con_get_axis(SDL_CONTROLLER_AXIS_LEFTY);
+    i->arx    = con_get_axis(SDL_CONTROLLER_AXIS_RIGHTX);
+    i->ary    = con_get_axis(SDL_CONTROLLER_AXIS_RIGHTY);
+    i->altrig = con_get_axis(SDL_CONTROLLER_AXIS_TRIGGERLEFT);
+    i->artrig = con_get_axis(SDL_CONTROLLER_AXIS_TRIGGERRIGHT);
 }
 
 void dlog(const char *fmt, ...)

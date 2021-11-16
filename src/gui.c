@@ -103,7 +103,7 @@ static void coninfo_panel(mu_Context *ctx)
     }
 }
 
-static void analog_panel(mu_Context *ctx)
+static void analog_panel(mu_Context *ctx, ControllerConfig *cfg)
 {
     if (mu_header_ex(ctx, "Analog stick", MU_OPT_EXPANDED)) {
         mu_Container *win = mu_get_current_container(ctx);
@@ -112,22 +112,22 @@ static void analog_panel(mu_Context *ctx)
 
         // deadzone slider
         mu_label(ctx, "Deadzone");
-        float *dz = &concfg.deadzone;
+        float *dz = &cfg->deadzone;
         mu_slider(ctx, dz, 0.f, 1.f);
 
         // outer edge
         mu_label(ctx, "Outer edge");
-        float *edge = &concfg.outer_edge;
+        float *edge = &cfg->outer_edge;
         mu_slider(ctx, edge, 0.f, 1.f);
 
         // range
         mu_label(ctx, "Range");
-        float *range = &concfg.range;
+        float *range = &cfg->range;
         uint_slider(ctx, range, 0, 127);
 
         // clamping checkbox
         mu_label(ctx, "Range clamping");
-        int *clamp = &concfg.is_clamped;
+        int *clamp = &cfg->is_clamped;
         mu_checkbox(ctx, "", clamp);
     }
 }
@@ -164,7 +164,7 @@ static void test_window(mu_Context *ctx) {
         mu_Container *win = mu_get_current_container(ctx);
 
         coninfo_panel(ctx);
-        analog_panel(ctx);
+        analog_panel(ctx, &concfg);
         configfile_panel(ctx);
         log_panel(ctx);
 

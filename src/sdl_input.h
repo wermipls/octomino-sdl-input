@@ -64,14 +64,14 @@ typedef struct
 
 void init(void);
 void deinit(void);
-void open_controller(void);
-void close_controller(void);
+void con_open(void);
+void con_close(void);
 int16_t threshold(int16_t val, float cutoff);
 void scale_and_limit(int16_t *x, int16_t *y, float dz, float edge);
 int16_t sclamp(int16_t val, int16_t min, int16_t max);
-void get_inputs(inputs_t *i);
+void con_get_inputs(inputs_t *i);
 
-void write_inputs(inputs_t *i);
+void con_write_inputs(inputs_t *i);
 void dlog(const char *fmt, ...);
 
 #endif

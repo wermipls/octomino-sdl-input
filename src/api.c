@@ -57,7 +57,7 @@ EXPORT void CALL DllAbout(HWND hParent)
 
 EXPORT void CALL DllConfig(HWND hParent)
 {
-    open_controller();
+    con_open();
     config_window();
 }
 
@@ -101,7 +101,7 @@ static inline void n64_analog(BUTTONS *Keys, int16_t x, int16_t y)
 EXPORT void CALL GetKeys(int Control, BUTTONS *Keys)
 {
     inputs_t i = {0};
-    get_inputs(&i);
+    con_get_inputs(&i);
 
     Keys->Value = 0;
 
@@ -148,7 +148,7 @@ EXPORT void CALL InitiateControllers(HWND hMainWindow, CONTROL Controls[4])
 
 EXPORT void CALL RomOpen(void)
 {
-    open_controller();
+    con_open();
 }
 
 //EXPORT void CALL WM_KeyDown(WPARAM wParam, LPARAM lParam) {}
