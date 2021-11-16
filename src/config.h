@@ -1,3 +1,5 @@
+#include <stdio.h>
+
 typedef struct ControllerConfig 
 {
     float deadzone;
@@ -7,5 +9,7 @@ typedef struct ControllerConfig
 } ControllerConfig;
 
 extern ControllerConfig concfg;
+
+extern FILE *configfile;
 
 void config_initialize(ControllerConfig *cfg);
