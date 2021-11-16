@@ -172,39 +172,6 @@ static void test_window(mu_Context *ctx) {
     }
 }
 
-static void style_window(mu_Context *ctx) {
-    static struct { const char *label; int idx; } colors[] = {
-        { "text:",         MU_COLOR_TEXT        },
-        { "border:",       MU_COLOR_BORDER      },
-        { "windowbg:",     MU_COLOR_WINDOWBG    },
-        { "titlebg:",      MU_COLOR_TITLEBG     },
-        { "titletext:",    MU_COLOR_TITLETEXT   },
-        { "panelbg:",      MU_COLOR_PANELBG     },
-        { "button:",       MU_COLOR_BUTTON      },
-        { "buttonhover:",  MU_COLOR_BUTTONHOVER },
-        { "buttonfocus:",  MU_COLOR_BUTTONFOCUS },
-        { "base:",         MU_COLOR_BASE        },
-        { "basehover:",    MU_COLOR_BASEHOVER   },
-        { "basefocus:",    MU_COLOR_BASEFOCUS   },
-        { "scrollbase:",   MU_COLOR_SCROLLBASE  },
-        { "scrollthumb:",  MU_COLOR_SCROLLTHUMB },
-        { NULL }
-    };
-
-    if (mu_begin_window(ctx, "Style Editor", mu_rect(350, 250, 300, 240))) {
-        int sw = mu_get_current_container(ctx)->body.w * 0.14;
-        mu_layout_row(ctx, 6, (int[]) { 80, sw, sw, sw, sw, -1 }, 0);
-        for (int i = 0; colors[i].label; i++) {
-            mu_label(ctx, colors[i].label);
-            uint8_slider(ctx, &ctx->style->colors[i].r, 0, 255);
-            uint8_slider(ctx, &ctx->style->colors[i].g, 0, 255);
-            uint8_slider(ctx, &ctx->style->colors[i].b, 0, 255);
-            uint8_slider(ctx, &ctx->style->colors[i].a, 0, 255);
-            mu_draw_rect(ctx, mu_layout_next(ctx), ctx->style->colors[i]);
-        }
-        mu_end_window(ctx);
-    }
-}
 
 
 static void process_frame(mu_Context *ctx) {
