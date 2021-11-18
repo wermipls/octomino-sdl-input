@@ -6,8 +6,9 @@
 #include "sdl_input.h"
 #include "config.h"
 
+#define LOG_SIZE 4096
 
-static  char logbuf[64000];
+static  char logbuf[LOG_SIZE];
 static   int logbuf_updated = 0;
 static float bg[3] = { 90, 95, 100 };
 
@@ -17,6 +18,11 @@ static char not_available[] = "N/A";
 
 void write_log(char *text) {
     if (logbuf[0]) { strcat(logbuf, "\n"); }
+
+    if ((strlen(logbuf) + strlen(text) + 1) > LOG_SIZE) {
+        memcpy(logbuf, logbuf+LOG_SIZE/2, LOG_SIZE/2);
+    }
+
     strcat(logbuf, text);
     logbuf_updated = 1;
 }
