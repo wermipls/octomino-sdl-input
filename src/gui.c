@@ -12,7 +12,7 @@ static   int logbuf_updated = 0;
 static float bg[3] = { 90, 95, 100 };
 
 static int window_open = 0;
-static mu_Context *ctx;
+static mu_Context *context;
 static char not_available[] = "N/A";
 
 void write_log(char *text) {
@@ -68,8 +68,8 @@ static void coninfo_panel(mu_Context *ctx)
         
         mu_label(ctx,"Name");
         if (con != NULL) {
-            char *name = SDL_GameControllerName(con);
-            if (*name != NULL) {
+            const char *name = SDL_GameControllerName(con);
+            if (name != NULL) {
                 mu_label(ctx, name);
             } 
         } else {
@@ -79,7 +79,7 @@ static void coninfo_panel(mu_Context *ctx)
         mu_label(ctx,"GameController mapping");
         if (con != NULL) {
             char *mapping = SDL_GameControllerMapping(con);
-            if (*mapping != NULL) {
+            if (mapping != NULL) {
                 mu_label(ctx, mapping);
                 SDL_free(mapping);
             } 
@@ -92,7 +92,6 @@ static void coninfo_panel(mu_Context *ctx)
 static void analog_panel(mu_Context *ctx, ControllerConfig *cfg)
 {
     if (mu_begin_treenode_ex(ctx, "Analog stick", MU_OPT_EXPANDED)) {
-        mu_Container *win = mu_get_current_container(ctx);
         const int widths[] = {150, -1};
         mu_layout_row(ctx, 2, widths, 0);
 
@@ -108,7 +107,7 @@ static void analog_panel(mu_Context *ctx, ControllerConfig *cfg)
 
         // range
         mu_label(ctx, "Range");
-        float *range = &cfg->range;
+        unsigned int *range = &cfg->range;
         uint_slider(ctx, range, 0, 127);
 
         // clamping checkbox
@@ -173,7 +172,6 @@ static void controller_panel(mu_Context *ctx, ControllerConfig *cfg, const char 
 static void configfile_panel(mu_Context *ctx)
 {
     if (mu_header_ex(ctx, "Configuration file", MU_OPT_EXPANDED)) {
-        mu_Container *win = mu_get_current_container(ctx);
         const int widths[] = {150, -1};
         mu_layout_row(ctx, 2, widths, 0);
 
@@ -199,8 +197,6 @@ static void test_window(mu_Context *ctx) {
     /* do window */
     int opt = MU_OPT_NOINTERACT | MU_OPT_NOTITLE;
     if (mu_begin_window_ex(ctx, "Demo Window", mu_rect(0, 0, 600, 600), opt)) {
-        mu_Container *win = mu_get_current_container(ctx);
-
         coninfo_panel(ctx);
         controller_panel(ctx, &concfg, "Controller 1 settings", MU_OPT_EXPANDED);
         configfile_panel(ctx);
@@ -258,10 +254,10 @@ void config_window() {
     r_init();
 
     /* init microui */
-    ctx = malloc(sizeof(mu_Context));
-    mu_init(ctx);
-    ctx->text_width = text_width;
-    ctx->text_height = text_height;
+    context = malloc(sizeof(mu_Context));
+    mu_init(context);
+    context->text_width = text_width;
+    context->text_height = text_height;
 
     /* main loop */
     for (;;) {
@@ -270,35 +266,35 @@ void config_window() {
         while (SDL_PollEvent(&e)) {
             switch (e.type) {
                 case SDL_QUIT: gui_deinit(); return;
-                case SDL_MOUSEMOTION: mu_input_mousemove(ctx, e.motion.x, e.motion.y); break;
-                case SDL_MOUSEWHEEL: mu_input_scroll(ctx, 0, e.wheel.y * -30); break;
-                case SDL_TEXTINPUT: mu_input_text(ctx, e.text.text); break;
+                case SDL_MOUSEMOTION: mu_input_mousemove(context, e.motion.x, e.motion.y); break;
+                case SDL_MOUSEWHEEL: mu_input_scroll(context, 0, e.wheel.y * -30); break;
+                case SDL_TEXTINPUT: mu_input_text(context, e.text.text); break;
 
                 case SDL_MOUSEBUTTONDOWN:
                 case SDL_MOUSEBUTTONUP: {
                     int b = button_map[e.button.button & 0xff];
-                    if (b && e.type == SDL_MOUSEBUTTONDOWN) { mu_input_mousedown(ctx, e.button.x, e.button.y, b); }
-                    if (b && e.type ==   SDL_MOUSEBUTTONUP) { mu_input_mouseup(ctx, e.button.x, e.button.y, b);   }
+                    if (b && e.type == SDL_MOUSEBUTTONDOWN) { mu_input_mousedown(context, e.button.x, e.button.y, b); }
+                    if (b && e.type ==   SDL_MOUSEBUTTONUP) { mu_input_mouseup(context, e.button.x, e.button.y, b);   }
                     break;
                 }
 
                 case SDL_KEYDOWN:
                 case SDL_KEYUP: {
                     int c = key_map[e.key.keysym.sym & 0xff];
-                    if (c && e.type == SDL_KEYDOWN) { mu_input_keydown(ctx, c); }
-                    if (c && e.type ==   SDL_KEYUP) { mu_input_keyup(ctx, c);   }
+                    if (c && e.type == SDL_KEYDOWN) { mu_input_keydown(context, c); }
+                    if (c && e.type ==   SDL_KEYUP) { mu_input_keyup(context, c);   }
                     break;
                 }
             }
         }
 
         /* process frame */
-        process_frame(ctx);
+        process_frame(context);
 
         /* render */
         r_clear(mu_color(bg[0], bg[1], bg[2], 255));
         mu_Command *cmd = NULL;
-        while (mu_next_command(ctx, &cmd)) {
+        while (mu_next_command(context, &cmd)) {
             switch (cmd->type) {
                 case MU_COMMAND_TEXT: r_draw_text(cmd->text.str, cmd->text.pos, cmd->text.color); break;
                 case MU_COMMAND_RECT: r_draw_rect(cmd->rect.rect, cmd->rect.color); break;
@@ -313,6 +309,6 @@ void config_window() {
 void gui_deinit()
 {
     window_open = 0;
-    free(ctx);
+    free(context);
     r_close();
 }

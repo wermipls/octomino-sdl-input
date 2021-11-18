@@ -105,9 +105,6 @@ static void config_load_con(ControllerConfig *cfg, ini_t *ini, char con_id)
         section_n = ini_section_add(ini, section, 0);
     }
 
-    int prop_n;
-    const char *prop_val;
-
     // read properties
     cfg->deadzone = read_property_float(ini, section_n, "deadzone", cfg->deadzone);
     cfg->outer_edge = read_property_float(ini, section_n, "outer_edge", cfg->outer_edge);
@@ -128,9 +125,6 @@ static void config_save_con(ControllerConfig *cfg, ini_t *ini, char con_id)
         dlog("INI: section %s not found", section);
         section_n = ini_section_add(ini, section, 0);
     }
-
-    int prop_n;
-    const char *prop_val;
 
     // read properties
     set_property_float(ini, section_n, "deadzone", cfg->deadzone);
