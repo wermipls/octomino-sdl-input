@@ -20,6 +20,8 @@
 ** IN THE SOFTWARE.
 */
 
+#pragma GCC diagnostic ignored "-Wshadow"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -1206,3 +1208,4 @@ void mu_end_panel(mu_Context *ctx) {
   mu_pop_clip_rect(ctx);
   pop_container(ctx);
 }
+#pragma GCC diagnostic pop

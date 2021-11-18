@@ -10,6 +10,8 @@ Do this:
 before you include this file in *one* C/C++ file to create the implementation.
 */
 
+#pragma GCC diagnostic ignored "-Wsign-compare"
+
 #ifndef ini_h
 #define ini_h
 
@@ -991,6 +993,8 @@ void ini_property_value_set( ini_t* ini, int section, int property, char const* 
 
 
 #endif /* INI_IMPLEMENTATION */
+
+#pragma GCC diagnostic pop
 
 /*
 
