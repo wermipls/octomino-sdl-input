@@ -60,8 +60,6 @@ static void log_panel(mu_Context *ctx) {
 static void coninfo_panel(mu_Context *ctx)
 {
     if (mu_header_ex(ctx, "Controller info", MU_OPT_EXPANDED)) {
-        mu_Container *win = mu_get_current_container(ctx);
-        char buf[64];
         const int widths[] = {150, -1};
         mu_layout_row(ctx, 2, widths, 0);
 
