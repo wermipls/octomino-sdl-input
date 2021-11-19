@@ -27,16 +27,6 @@ void write_log(char *text) {
     logbuf_updated = 1;
 }
 
-static int uint8_slider(mu_Context *ctx, unsigned char *value, int low, int high) {
-    static float tmp;
-    mu_push_id(ctx, &value, sizeof(value));
-    tmp = *value;
-    int res = mu_slider_ex(ctx, &tmp, low, high, 0, "%.0f", MU_OPT_ALIGNCENTER);
-    *value = tmp;
-    mu_pop_id(ctx);
-    return res;
-}
-
 static int uint_slider(mu_Context *ctx, unsigned int *value, int low, int high) {
     static float tmp;
     mu_push_id(ctx, &value, sizeof(value));
