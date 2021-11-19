@@ -126,7 +126,7 @@ static void config_save_con(ControllerConfig *cfg, ini_t *ini, char con_id)
         section_n = ini_section_add(ini, section, 0);
     }
 
-    // read properties
+    // save properties
     set_property_float(ini, section_n, "deadzone", cfg->deadzone);
     set_property_float(ini, section_n, "outer_edge", cfg->outer_edge);
     set_property_int(ini, section_n, "range", cfg->range);
