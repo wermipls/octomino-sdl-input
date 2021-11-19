@@ -80,17 +80,25 @@ static inline void n64_analog(BUTTONS *Keys, int16_t x, int16_t y)
     x = ((int32_t)x * (int32_t)concfg.range) / 32767;
     y = ((int32_t)y * (int32_t)concfg.range) / 32767;
 
-    int diagonal = concfg.range * 70 / 80;
-    int16_t lim_x = concfg.range - (int16_t)round(abs(sclamp(y, -diagonal, diagonal)) / 7. - 1. / 7);
-    int16_t lim_y = concfg.range - (int16_t)round(abs(sclamp(x, -diagonal, diagonal)) / 7. - 1. / 7);
-
     if (concfg.is_clamped) {
+        int16_t lim_x = 80 - (int16_t)round(abs(sclamp(y, -70, 70)) / 7. - 1. / 7);
+        int16_t lim_y = 80 - (int16_t)round(abs(sclamp(x, -70, 70)) / 7. - 1. / 7);
+
         if (lim_x < x) {
             x = lim_x;
             y = y * (lim_x / x);
-        } else if (lim_y < y) {
+        }
+        if (-lim_x > x) {
+            x = -lim_x;
+            y = y * (-lim_x / x);
+        }
+        if (lim_y < y) {
             y = lim_y;
             x = x * (lim_y / y);
+        }
+        if (-lim_y > y) {
+            y = -lim_y;
+            x = x * (-lim_y / y);
         }
     }
 
