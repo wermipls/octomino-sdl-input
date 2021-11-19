@@ -77,8 +77,8 @@ EXPORT void CALL GetDllInfo(PLUGIN_INFO * PluginInfo)
 
 static inline void n64_analog(BUTTONS *Keys, int16_t x, int16_t y)
 {
-    x = ((int32_t)x * concfg.range) / 32767;
-    y = ((int32_t)y * concfg.range) / 32767;
+    x = ((int32_t)x * (int32_t)concfg.range) / 32767;
+    y = ((int32_t)y * (int32_t)concfg.range) / 32767;
 
     int diagonal = concfg.range * 70 / 80;
     int16_t lim_x = concfg.range - (int16_t)round(abs(sclamp(y, -diagonal, diagonal)) / 7. - 1. / 7);
