@@ -19,7 +19,7 @@ static char not_available[] = "N/A";
 void write_log(char *text) {
     if (logbuf[0]) { strcat(logbuf, "\n"); }
 
-    if ((strlen(logbuf) + strlen(text) + 1) > LOG_SIZE) {
+    if ((strlen(logbuf) + strlen(text) + 1) >= LOG_SIZE) {
         memcpy(logbuf, logbuf+LOG_SIZE/2, LOG_SIZE/2);
     }
 
