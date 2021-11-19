@@ -69,6 +69,8 @@ void con_close(void);
 int16_t threshold(int16_t val, float cutoff);
 void scale_and_limit(int16_t *x, int16_t *y, float dz, float edge);
 int16_t sclamp(int16_t val, int16_t min, int16_t max);
+int16_t smin(int16_t val, int16_t min);
+int16_t smax(int16_t val, int16_t max);
 void con_get_inputs(inputs_t *i);
 
 void con_write_inputs(inputs_t *i);

@@ -98,6 +98,116 @@ static inline void n64_analog(BUTTONS *Keys, int16_t x, int16_t y)
     Keys->X_AXIS = -y;
 }
 
+static int16_t get_state_buttonaxis(inputs_t *i, enum ButtonAxis ba)
+{
+    switch (ba)
+    {
+        case CONTROLLER_NOT_SET:
+            return 0;
+        case CONTROLLER_A:
+            return i->a;
+        case CONTROLLER_B:
+            return i->b;
+        case CONTROLLER_X:
+            return i->x;
+        case CONTROLLER_Y:
+            return i->y;
+        case CONTROLLER_BACK:
+            return i->back;
+        case CONTROLLER_GUIDE:
+            return i->guide;
+        case CONTROLLER_START:
+            return i->start;
+        case CONTROLLER_LSTICK:
+            return i->lstick;
+        case CONTROLLER_RSTICK:
+            return i->rstick;
+        case CONTROLLER_LSHOULDER:
+            return i->lshoul;
+        case CONTROLLER_RSHOULDER:
+            return i->rshoul;
+        case CONTROLLER_DUP:
+            return i->dup;
+        case CONTROLLER_DDOWN:
+            return i->ddown;
+        case CONTROLLER_DLEFT:
+            return i->dleft;
+        case CONTROLLER_DRIGHT:
+            return i->dright;
+        case CONTROLLER_LEFTX:
+            return smin(i->alx, 0);
+        case CONTROLLER_LEFTX_MIN:
+            return smax(i->alx, 0);
+        case CONTROLLER_RIGHTX:
+            return smin(i->arx, 0);
+        case CONTROLLER_RIGHTX_MIN:
+            return smax(i->arx, 0);
+        case CONTROLLER_LEFTY:
+            return smin(i->aly, 0);
+        case CONTROLLER_LEFTY_MIN:
+            return smax(i->aly, 0);
+        case CONTROLLER_RIGHTY:
+            return smin(i->ary, 0);
+        case CONTROLLER_RIGHTY_MIN:
+            return smax(i->ary, 0);
+        case CONTROLLER_LTRIG:
+            return i->altrig;
+        case CONTROLLER_RTRIG:
+            return i->artrig;
+        default:
+            dlog("con_get_input(): invalid ButtonAxis value %d", ba);
+            return 0;
+    }
+}
+
+static int16_t get_state_mapping_button(inputs_t *i, ControllerMapping *mapping)
+{
+    int16_t p = get_state_buttonaxis(i, mapping->primary);
+    int16_t s = get_state_buttonaxis(i, mapping->secondary);
+
+    if (mapping->primary > CONTROLLER_AXIS_BEGIN) {
+        p = threshold(p, 0.25f) != 0;
+    }
+
+    if (mapping->secondary > CONTROLLER_AXIS_BEGIN) {
+        s = threshold(s, 0.25f) != 0;
+    }
+
+    return p || s;
+}
+
+static int16_t get_state_mapping_axis(inputs_t *i, ControllerMapping *plus, ControllerMapping *minus)
+{
+    int16_t plus_p = get_state_buttonaxis(i, plus->primary);
+    int16_t plus_s = get_state_buttonaxis(i, plus->secondary);
+
+    int16_t minus_p = get_state_buttonaxis(i, minus->primary);
+    int16_t minus_s = get_state_buttonaxis(i, minus->secondary);
+
+    if (plus->primary < CONTROLLER_AXIS_BEGIN) {
+        plus_p = plus_p * 32767;
+    }
+
+    if (plus->secondary < CONTROLLER_AXIS_BEGIN) {
+        plus_s = plus_s * 32767;
+    }
+
+    if (minus->primary < CONTROLLER_AXIS_BEGIN) {
+        minus_p = minus_p * -32767;
+    }
+
+    if (minus->secondary < CONTROLLER_AXIS_BEGIN) {
+        minus_s = minus_s * -32767;
+    }
+
+    int32_t axis = plus_p + plus_s + minus_p + minus_s;
+    
+    if (axis > 32767) return 32767;
+    if (axis < -32768) return -32768;
+
+    return axis;
+}
+
 EXPORT void CALL GetKeys(int Control, BUTTONS *Keys)
 {
     inputs_t i = {0};
@@ -105,24 +215,24 @@ EXPORT void CALL GetKeys(int Control, BUTTONS *Keys)
 
     Keys->Value = 0;
 
-    Keys->R_DPAD = i.dright;
-    Keys->L_DPAD = i.dleft;
-    Keys->D_DPAD = i.ddown;
-    Keys->U_DPAD = i.dup;
-    Keys->START_BUTTON = i.start;
-    Keys->Z_TRIG = threshold(i.altrig, 0.25f) > 0;
-    Keys->A_BUTTON = i.a || i.b;
-    Keys->B_BUTTON = i.x || i.y;
+    Keys->R_DPAD = get_state_mapping_button(&i, &concfg.dright);
+    Keys->L_DPAD = get_state_mapping_button(&i, &concfg.dleft);
+    Keys->D_DPAD = get_state_mapping_button(&i, &concfg.ddown);
+    Keys->U_DPAD = get_state_mapping_button(&i, &concfg.dup);
+    Keys->START_BUTTON = get_state_mapping_button(&i, &concfg.start);
+    Keys->Z_TRIG = get_state_mapping_button(&i, &concfg.z);
+    Keys->A_BUTTON = get_state_mapping_button(&i, &concfg.a);
+    Keys->B_BUTTON = get_state_mapping_button(&i, &concfg.b);
 
-    Keys->R_CBUTTON = threshold(i.arx, 0.25f) > 0;
-    Keys->L_CBUTTON = threshold(i.arx, 0.25f) < 0;
-    Keys->D_CBUTTON = threshold(i.ary, 0.25f) > 0;
-    Keys->U_CBUTTON = threshold(i.ary, 0.25f) < 0;
-    Keys->R_TRIG = threshold(i.artrig, 0.25f) > 0 || i.rshoul;
-    Keys->L_TRIG = i.lshoul;
+    Keys->R_CBUTTON = get_state_mapping_button(&i, &concfg.cright);
+    Keys->L_CBUTTON = get_state_mapping_button(&i, &concfg.cleft);
+    Keys->D_CBUTTON = get_state_mapping_button(&i, &concfg.cdown);
+    Keys->U_CBUTTON = get_state_mapping_button(&i, &concfg.cup);
+    Keys->R_TRIG = get_state_mapping_button(&i, &concfg.r);
+    Keys->L_TRIG = get_state_mapping_button(&i, &concfg.l);
 
-    int16_t x = i.alx;
-    int16_t y = i.aly;
+    int16_t x = get_state_mapping_axis(&i, &concfg.right, &concfg.left);
+    int16_t y = get_state_mapping_axis(&i, &concfg.down, &concfg.up);
     scale_and_limit(&x, &y, concfg.deadzone, concfg.outer_edge);
 
     n64_analog(

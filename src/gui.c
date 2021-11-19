@@ -47,6 +47,41 @@ static int uint_slider(mu_Context *ctx, unsigned int *value, int low, int high) 
     return res;
 }
 
+static const char *get_con_buttonaxis_name(enum ButtonAxis ba)
+{
+    static const char names[][64] = {
+        "Not set",
+        "A",
+        "B",
+        "X",
+        "Y",
+        "Back",
+        "Guide",
+        "Start",
+        "Left Stick Button",
+        "Right Stick Button",
+        "Left Shoulder",
+        "Right Shoulder",
+        "D-Pad Up",
+        "D-Pad Down",
+        "D-Pad Left",
+        "D-Pad Right",
+        "",
+        "Left Stick X",
+        "Left Stick Y",
+        "Right Stick X",
+        "Right Stick Y",
+        "Left Stick -X",
+        "Left Stick -Y",
+        "Right Stick -X",
+        "Right Stick -Y",
+        "Left Trigger",
+        "Right Trigger",
+    };
+
+    return names[ba];
+}
+
 static void log_panel(mu_Context *ctx) {
     if (mu_header(ctx, "Log")) {
         /* output text panel */
@@ -55,11 +90,11 @@ static void log_panel(mu_Context *ctx) {
         mu_Container *panel = mu_get_current_container(ctx);
         mu_layout_row(ctx, 1, (int[]) { -1 }, -1);
         mu_text(ctx, logbuf);
-        mu_end_panel(ctx);
         if (logbuf_updated) {
             panel->scroll.y = panel->content_size.y;
             logbuf_updated = 0;
         }
+        mu_end_panel(ctx);
     }
 }
 
@@ -123,13 +158,33 @@ static void analog_panel(mu_Context *ctx, ControllerConfig *cfg)
     }
 }
 
-static void binding_row(mu_Context *ctx, const char name[])
+static void binding_row(mu_Context *ctx, const char name[], ControllerMapping *mapping)
 {
     mu_label(ctx, name);
 
-    mu_button(ctx, "Not set");
+    const char *label_primary = get_con_buttonaxis_name(mapping->primary);
+    if (mu_button_ex_id(ctx, label_primary, (int)&mapping->primary, 0, MU_OPT_ALIGNCENTER)) {
+        mapping->primary++;
+        if (mapping->primary == CONTROLLER_AXIS_BEGIN) {
+            mapping->primary++;
+        }
+        if (mapping->primary == CONTROLLER_ENUM_END) {
+            mapping->primary = CONTROLLER_NOT_SET;
+        }
+        dlog("pressed primary, %d", mapping->primary);
+    }
 
-    mu_button(ctx, "Not set");
+    const char *label_secondary = get_con_buttonaxis_name(mapping->secondary);
+    if (mu_button_ex_id(ctx, label_secondary, (int)&mapping->secondary, 0, MU_OPT_ALIGNCENTER)) {
+        mapping->secondary++;
+        if (mapping->secondary == CONTROLLER_AXIS_BEGIN) {
+            mapping->secondary++;
+        }
+        if (mapping->secondary == CONTROLLER_ENUM_END) {
+            mapping->secondary = CONTROLLER_NOT_SET;
+        }
+        dlog("pressed secondary, %d", mapping->secondary);
+    }
 }
 
 static void binding_panel(mu_Context *ctx, ControllerConfig *cfg)
@@ -142,24 +197,24 @@ static void binding_panel(mu_Context *ctx, ControllerConfig *cfg)
         mu_draw_control_text(ctx, "Primary", mu_layout_next(ctx), MU_COLOR_TEXT, MU_OPT_ALIGNCENTER);
         mu_draw_control_text(ctx, "Secondary", mu_layout_next(ctx), MU_COLOR_TEXT, MU_OPT_ALIGNCENTER);
 
-        binding_row(ctx, "A");
-        binding_row(ctx, "B");
-        binding_row(ctx, "Z");
-        binding_row(ctx, "L");
-        binding_row(ctx, "R");
-        binding_row(ctx, "Start");
-        binding_row(ctx, "C-Up");
-        binding_row(ctx, "C-Down");
-        binding_row(ctx, "C-Left");
-        binding_row(ctx, "C-Right");
-        binding_row(ctx, "D-Pad Up");
-        binding_row(ctx, "D-Pad Down");
-        binding_row(ctx, "D-Pad Left");
-        binding_row(ctx, "D-Pad Right");
-        binding_row(ctx, "Analog Up");
-        binding_row(ctx, "Analog Down");
-        binding_row(ctx, "Analog Left");
-        binding_row(ctx, "Analog Right");
+        binding_row(ctx, "A", &cfg->a);
+        binding_row(ctx, "B", &cfg->b);
+        binding_row(ctx, "Z", &cfg->z);
+        binding_row(ctx, "L", &cfg->l);
+        binding_row(ctx, "R", &cfg->r);
+        binding_row(ctx, "Start", &cfg->start);
+        binding_row(ctx, "C-Up", &cfg->cup);
+        binding_row(ctx, "C-Down", &cfg->cdown);
+        binding_row(ctx, "C-Left", &cfg->cleft);
+        binding_row(ctx, "C-Right", &cfg->cright);
+        binding_row(ctx, "D-Pad Up", &cfg->dup);
+        binding_row(ctx, "D-Pad Down", &cfg->ddown);
+        binding_row(ctx, "D-Pad Left", &cfg->dleft);
+        binding_row(ctx, "D-Pad Right", &cfg->dright);
+        binding_row(ctx, "Analog Up", &cfg->up);
+        binding_row(ctx, "Analog Down", &cfg->down);
+        binding_row(ctx, "Analog Left", &cfg->left);
+        binding_row(ctx, "Analog Right", &cfg->right);
 
         mu_end_treenode(ctx);
     }

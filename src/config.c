@@ -7,6 +7,9 @@
 ControllerConfig concfg;
 char configpath[PATH_MAX] = "Config\\" PLUGIN_NAME ".ini";
 
+static const char suffix_primary[] = "_primary";
+static const char suffix_secondary[] = "_secondary";
+
 ini_t *configini;
 
 static ini_t *ini_load_file(FILE *f)
@@ -61,6 +64,21 @@ static void set_property_int(ini_t *ini, int section_n, const char property[], i
     set_property(ini, section_n, property, prop_val);
 }
 
+static void set_property_mapping(ini_t *ini, int section_n, const char property[], ControllerMapping *val)
+{
+    char property_buf[64];
+
+    strncpy(property_buf, property, sizeof(property_buf));
+    strncat(property_buf, suffix_primary, sizeof(property_buf)-1);
+
+    set_property_int(ini, section_n, property_buf, val->primary);
+
+    strncpy(property_buf, property, sizeof(property_buf));
+    strncat(property_buf, suffix_secondary, sizeof(property_buf)-1);
+
+    set_property_int(ini, section_n, property_buf, val->secondary);
+}
+
 static float read_property_float(ini_t *ini, int section_n, const char property[], float defaultval)
 {
     int prop_n = ini_find_property(ini, section_n, property, 0);
@@ -93,6 +111,21 @@ static float read_property_int(ini_t *ini, int section_n, const char property[],
     }
 }
 
+static void read_property_mapping(ini_t *ini, int section_n, const char property[], ControllerMapping *val)
+{
+    char property_buf[64];
+
+    strncpy(property_buf, property, sizeof(property_buf));
+    strncat(property_buf, suffix_primary, sizeof(property_buf)-1);
+
+    val->primary = read_property_int(ini, section_n, property_buf, val->primary);
+
+    strncpy(property_buf, property, sizeof(property_buf));
+    strncat(property_buf, suffix_secondary, sizeof(property_buf)-1);
+
+    val->secondary = read_property_int(ini, section_n, property_buf, val->secondary);
+}
+
 static void config_load_con(ControllerConfig *cfg, ini_t *ini, char con_id)
 {
     // find section
@@ -111,8 +144,29 @@ static void config_load_con(ControllerConfig *cfg, ini_t *ini, char con_id)
     cfg->range = read_property_int(ini, section_n, "range", cfg->range);
     cfg->is_clamped = read_property_int(ini, section_n, "is_clamped", cfg->is_clamped);
 
+    // mapping cfg
+    read_property_mapping(ini, section_n, "a", &cfg->a);
+    read_property_mapping(ini, section_n, "b", &cfg->b);
+    read_property_mapping(ini, section_n, "z", &cfg->z);
+    read_property_mapping(ini, section_n, "l", &cfg->l);
+    read_property_mapping(ini, section_n, "r", &cfg->r);
+    read_property_mapping(ini, section_n, "start", &cfg->start);
+    read_property_mapping(ini, section_n, "dup", &cfg->dup);
+    read_property_mapping(ini, section_n, "ddown", &cfg->ddown);
+    read_property_mapping(ini, section_n, "dleft", &cfg->dleft);
+    read_property_mapping(ini, section_n, "dright", &cfg->dright);
+    read_property_mapping(ini, section_n, "cup", &cfg->cup);
+    read_property_mapping(ini, section_n, "cdown", &cfg->cdown);
+    read_property_mapping(ini, section_n, "cleft", &cfg->cleft);
+    read_property_mapping(ini, section_n, "cright", &cfg->cright);
+    read_property_mapping(ini, section_n, "up", &cfg->up);
+    read_property_mapping(ini, section_n, "down", &cfg->down);
+    read_property_mapping(ini, section_n, "left", &cfg->left);
+    read_property_mapping(ini, section_n, "right", &cfg->right);
+
     return;
 }
+
 
 static void config_save_con(ControllerConfig *cfg, ini_t *ini, char con_id)
 {
@@ -131,6 +185,25 @@ static void config_save_con(ControllerConfig *cfg, ini_t *ini, char con_id)
     set_property_float(ini, section_n, "outer_edge", cfg->outer_edge);
     set_property_int(ini, section_n, "range", cfg->range);
     set_property_int(ini, section_n, "is_clamped", cfg->is_clamped);
+    // mapping cfg
+    set_property_mapping(ini, section_n, "a", &cfg->a);
+    set_property_mapping(ini, section_n, "b", &cfg->b);
+    set_property_mapping(ini, section_n, "z", &cfg->z);
+    set_property_mapping(ini, section_n, "l", &cfg->l);
+    set_property_mapping(ini, section_n, "r", &cfg->r);
+    set_property_mapping(ini, section_n, "start", &cfg->start);
+    set_property_mapping(ini, section_n, "dup", &cfg->dup);
+    set_property_mapping(ini, section_n, "ddown", &cfg->ddown);
+    set_property_mapping(ini, section_n, "dleft", &cfg->dleft);
+    set_property_mapping(ini, section_n, "dright", &cfg->dright);
+    set_property_mapping(ini, section_n, "cup", &cfg->cup);
+    set_property_mapping(ini, section_n, "cdown", &cfg->cdown);
+    set_property_mapping(ini, section_n, "cleft", &cfg->cleft);
+    set_property_mapping(ini, section_n, "cright", &cfg->cright);
+    set_property_mapping(ini, section_n, "up", &cfg->up);
+    set_property_mapping(ini, section_n, "down", &cfg->down);
+    set_property_mapping(ini, section_n, "left", &cfg->left);
+    set_property_mapping(ini, section_n, "right", &cfg->right);
 
     return;
 }
@@ -173,6 +246,35 @@ void config_initialize()
     concfg.range = 80;
     concfg.outer_edge = 0.95;
     concfg.is_clamped = 0;
+
+    // default controls
+    concfg.a.primary        = CONTROLLER_A;
+    concfg.a.secondary      = CONTROLLER_B;
+
+    concfg.b.primary        = CONTROLLER_X;
+    concfg.b.secondary      = CONTROLLER_Y;
+
+    concfg.z.primary        = CONTROLLER_LTRIG;
+    concfg.l.primary        = CONTROLLER_LSHOULDER;
+    concfg.r.primary        = CONTROLLER_RTRIG;
+    concfg.r.secondary      = CONTROLLER_RSHOULDER;
+
+    concfg.start.primary    = CONTROLLER_START;
+
+    concfg.dup.primary      = CONTROLLER_DUP;
+    concfg.ddown.primary    = CONTROLLER_DDOWN;
+    concfg.dleft.primary    = CONTROLLER_DLEFT;
+    concfg.dright.primary   = CONTROLLER_DRIGHT;
+
+    concfg.cup.primary      = CONTROLLER_RIGHTY_MIN;
+    concfg.cdown.primary    = CONTROLLER_RIGHTY;
+    concfg.cleft.primary    = CONTROLLER_RIGHTX_MIN;
+    concfg.cright.primary   = CONTROLLER_RIGHTX;
+
+    concfg.up.primary       = CONTROLLER_LEFTY_MIN;
+    concfg.down.primary     = CONTROLLER_LEFTY;
+    concfg.left.primary     = CONTROLLER_LEFTX_MIN;
+    concfg.right.primary    = CONTROLLER_LEFTX;
 
     config_load();
 }

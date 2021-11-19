@@ -158,6 +158,18 @@ int16_t sclamp(int16_t val, int16_t min, int16_t max)
     return val;
 }
 
+int16_t smin(int16_t val, int16_t min)
+{
+    if (val <= min) return min;
+    return val;
+}
+
+int16_t smax(int16_t val, int16_t max)
+{
+    if (val >= max) return max;
+    return val;
+}
+
 void con_get_inputs(inputs_t *i)
 {
     if (!initialized)

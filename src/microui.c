@@ -749,6 +749,26 @@ int mu_button_ex(mu_Context *ctx, const char *label, int icon, int opt) {
 }
 
 
+/* button ex but id number is separate from the label itself 
+   since u cant have multiple buttons with same name normally >_> */
+int mu_button_ex_id(mu_Context *ctx, const char *label, int id_num, int icon, int opt) {
+  int res = 0;
+  mu_Id id = id_num ? mu_get_id(ctx, &id_num, sizeof(id_num))
+                    : mu_get_id(ctx, &icon, sizeof(icon));
+  mu_Rect r = mu_layout_next(ctx);
+  mu_update_control(ctx, id, r, opt);
+  /* handle click */
+  if (ctx->mouse_pressed == MU_MOUSE_LEFT && ctx->focus == id) {
+    res |= MU_RES_SUBMIT;
+  }
+  /* draw */
+  mu_draw_control_frame(ctx, id, r, MU_COLOR_BUTTON, opt);
+  if (label) { mu_draw_control_text(ctx, label, r, MU_COLOR_TEXT, opt); }
+  if (icon) { mu_draw_icon(ctx, icon, r, ctx->style->colors[MU_COLOR_TEXT]); }
+  return res;
+}
+
+
 int mu_checkbox(mu_Context *ctx, const char *label, int *state) {
   int res = 0;
   mu_Id id = mu_get_id(ctx, &state, sizeof(state));
