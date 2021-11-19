@@ -128,7 +128,8 @@ void scale_and_limit(int16_t *x, int16_t *y, float dz, float edge)
     if (fx > 1.f) {
         fy = fy * (1.f / fx);
         fx = 1.f;
-    } else if (fy > 1.f) {
+    }
+    if (fy > 1.f) {
         fx = fx * (1.f / fy);
         fy = 1.f;
     }
