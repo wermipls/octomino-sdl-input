@@ -56,7 +56,6 @@ static const char *get_con_buttonaxis_name(enum ButtonAxis ba)
         "D-Pad Down",
         "D-Pad Left",
         "D-Pad Right",
-        "",
         "Left Stick X",
         "Left Stick Y",
         "Right Stick X",
@@ -155,10 +154,7 @@ static void binding_row(mu_Context *ctx, const char name[], ControllerMapping *m
     const char *label_primary = get_con_buttonaxis_name(mapping->primary);
     if (mu_button_ex_id(ctx, label_primary, (int)&mapping->primary, 0, MU_OPT_ALIGNCENTER)) {
         mapping->primary++;
-        if (mapping->primary == CONTROLLER_AXIS_BEGIN) {
-            mapping->primary++;
-        }
-        if (mapping->primary == CONTROLLER_ENUM_END) {
+        if (mapping->primary >= CONTROLLER_ENUM_END) {
             mapping->primary = CONTROLLER_NOT_SET;
         }
         dlog("pressed primary, %d", mapping->primary);
@@ -167,10 +163,7 @@ static void binding_row(mu_Context *ctx, const char name[], ControllerMapping *m
     const char *label_secondary = get_con_buttonaxis_name(mapping->secondary);
     if (mu_button_ex_id(ctx, label_secondary, (int)&mapping->secondary, 0, MU_OPT_ALIGNCENTER)) {
         mapping->secondary++;
-        if (mapping->secondary == CONTROLLER_AXIS_BEGIN) {
-            mapping->secondary++;
-        }
-        if (mapping->secondary == CONTROLLER_ENUM_END) {
+        if (mapping->secondary >= CONTROLLER_ENUM_END) {
             mapping->secondary = CONTROLLER_NOT_SET;
         }
         dlog("pressed secondary, %d", mapping->secondary);
