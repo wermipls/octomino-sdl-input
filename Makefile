@@ -14,7 +14,8 @@ ZIPFILES = $(BIN) LICENSE README.md CHANGELOG.md gamecontrollerdb.txt sources.zi
 ZIPSRC   = $(wildcard src/*.c) $(wildcard src/*.h) $(wildcard src/*.inl) Makefile
 
 CC       = i686-w64-mingw32-gcc
-CFLAGS   = -std=c11 -O2 -MMD -flto -fvisibility=hidden \
+OPTFLAGS = -O2 -flto
+CFLAGS   = -std=c11 -MMD -fvisibility=hidden \
            -Wall -Wextra -Wpedantic -Wshadow -Wno-unused-parameter \
            -DPLUGIN_NAME=\""$(NAME)"\" \
            -DPLUGIN_VERSION=\""$(VERSION)"\" \
@@ -24,7 +25,7 @@ LDFLAGS  = -shared -static-libgcc -static \
 		   -lopengl32
 
 $(BIN): $(SRC:.c=.o)
-	$(CC) $(CFLAGS) $^ $(LDFLAGS) -o $@
+	$(CC) $(OPTFLAGS) $(CFLAGS) $^ $(LDFLAGS) -o $@
 
 -include $(SRC:.c=.d)
 
@@ -46,3 +47,7 @@ update-db:
 
 clean:
 	rm -f $(BIN) $(SRC:.c=.o) $(SRC:.c=.d) $(ZIPNAME) sources.zip
+
+debug: OPTFLAGS = -g
+
+debug: $(BIN)
