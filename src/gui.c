@@ -6,7 +6,7 @@
 #include "sdl_input.h"
 #include "config.h"
 
-#define LOG_SIZE 4096
+#define LOG_SIZE 64000
 
 static  char logbuf[LOG_SIZE];
 static   int logbuf_updated = 0;
