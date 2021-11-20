@@ -18,15 +18,21 @@ static ini_t *ini_load_file(FILE *f)
     int size = ftell(f);
     fseek(f, 0, SEEK_SET);
 
-    char *data = (char*) malloc(size + 1);
-    fread(data, 1, size, f);
-    data[size] = '\0';
+    ini_t *ini;
 
-    fclose(f);
+    if (size > 0) {
+        char *data = (char*) malloc(size + 1);
+        fread(data, 1, size, f);
+        data[size] = '\0';
 
-    ini_t *ini = ini_load(data, NULL);
+        fclose(f);
 
-    free(data);
+        ini = ini_load(data, NULL);
+
+        free(data);
+    } else {
+        ini = ini_create(0);
+    }
 
     return ini;
 }
@@ -214,7 +220,13 @@ void config_load()
     if (configini != NULL) {
         ini_destroy(configini);
     }
-    configini = ini_load_file(configfile);
+    if (configfile != NULL) {
+        configini = ini_load_file(configfile);
+        dlog("INI: loaded file %s", configpath, configini);
+    } else {
+        configini = ini_create(0);
+        dlog("INI: unable to open file %s", configpath);
+    }
     fclose(configfile);
 
     config_load_con(&concfg, configini, '0');
