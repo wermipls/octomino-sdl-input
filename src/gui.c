@@ -203,10 +203,25 @@ static void binding_panel(mu_Context *ctx, ControllerConfig *cfg)
     }
 }
 
+static void a2d_panel(mu_Context *ctx, ControllerConfig *cfg)
+{
+    if (mu_begin_treenode_ex(ctx, "Analog to digital mapping", MU_OPT_EXPANDED)) {
+        const int widths[] = {150, -1};
+        mu_layout_row(ctx, 2, widths, 0);
+
+        mu_label(ctx, "Activation threshold");
+        float *dz = &cfg->a2d_threshold;
+        mu_slider(ctx, dz, 0.f, 1.f);
+
+        mu_end_treenode(ctx);
+    }
+}
+
 static void controller_panel(mu_Context *ctx, ControllerConfig *cfg, const char name[], int opt)
 {
     if (mu_header_ex(ctx, name, opt)) {
         binding_panel(ctx, cfg);
+        a2d_panel(ctx, cfg);
         analog_panel(ctx, cfg);
     }
 }

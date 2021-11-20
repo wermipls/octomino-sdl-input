@@ -150,6 +150,8 @@ static void config_load_con(ControllerConfig *cfg, ini_t *ini, char con_id)
     cfg->range = read_property_int(ini, section_n, "range", cfg->range);
     cfg->is_clamped = read_property_int(ini, section_n, "is_clamped", cfg->is_clamped);
 
+    cfg->a2d_threshold = read_property_float(ini, section_n, "a2d_threshold", cfg->a2d_threshold);
+
     // mapping cfg
     read_property_mapping(ini, section_n, "a", &cfg->a);
     read_property_mapping(ini, section_n, "b", &cfg->b);
@@ -191,6 +193,9 @@ static void config_save_con(ControllerConfig *cfg, ini_t *ini, char con_id)
     set_property_float(ini, section_n, "outer_edge", cfg->outer_edge);
     set_property_int(ini, section_n, "range", cfg->range);
     set_property_int(ini, section_n, "is_clamped", cfg->is_clamped);
+
+    set_property_float(ini, section_n, "a2d_threshold", cfg->a2d_threshold);
+
     // mapping cfg
     set_property_mapping(ini, section_n, "a", &cfg->a);
     set_property_mapping(ini, section_n, "b", &cfg->b);
@@ -258,6 +263,8 @@ void config_initialize()
     concfg.range = 80;
     concfg.outer_edge = 0.95;
     concfg.is_clamped = 0;
+
+    concfg.a2d_threshold = 0.25;
 
     // default controls
     concfg.a.primary        = CONTROLLER_A;

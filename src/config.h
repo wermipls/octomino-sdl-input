@@ -49,6 +49,8 @@ typedef struct ControllerConfig
     unsigned int range;
     int is_clamped;
 
+    float a2d_threshold;
+
     ControllerMapping a;
     ControllerMapping b;
     ControllerMapping z;
