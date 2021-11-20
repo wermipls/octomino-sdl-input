@@ -147,26 +147,46 @@ static void analog_panel(mu_Context *ctx, ControllerConfig *cfg)
     }
 }
 
+static enum ButtonAxis *popup_ba;
+static const char popup_name[] = "Binding Popup";
+
+static void open_binding_popup(mu_Context *ctx, enum ButtonAxis *ba)
+{
+    popup_ba = ba;
+    mu_open_popup(ctx, popup_name);
+}
+
+static void binding_popup(mu_Context *ctx)
+{
+    if (mu_begin_popup(ctx, popup_name)) {
+        if (mu_button(ctx, "Next")) {
+            ++*popup_ba;
+            if (*popup_ba >= CONTROLLER_ENUM_END) {
+                *popup_ba = CONTROLLER_NOT_SET;
+            }
+        }
+        if (mu_button(ctx, "Previous")) {
+            if (*popup_ba == CONTROLLER_NOT_SET) {
+                *popup_ba = CONTROLLER_ENUM_END;
+            }
+            --*popup_ba;
+        }
+        mu_end_popup(ctx);
+    }
+}
+
 static void binding_row(mu_Context *ctx, const char name[], ControllerMapping *mapping)
 {
     mu_label(ctx, name);
 
     const char *label_primary = get_con_buttonaxis_name(mapping->primary);
     if (mu_button_ex_id(ctx, label_primary, (int)&mapping->primary, 0, MU_OPT_ALIGNCENTER)) {
-        mapping->primary++;
-        if (mapping->primary >= CONTROLLER_ENUM_END) {
-            mapping->primary = CONTROLLER_NOT_SET;
-        }
-        dlog("pressed primary, %d", mapping->primary);
+        open_binding_popup(ctx, &mapping->primary);
     }
 
     const char *label_secondary = get_con_buttonaxis_name(mapping->secondary);
     if (mu_button_ex_id(ctx, label_secondary, (int)&mapping->secondary, 0, MU_OPT_ALIGNCENTER)) {
-        mapping->secondary++;
-        if (mapping->secondary >= CONTROLLER_ENUM_END) {
-            mapping->secondary = CONTROLLER_NOT_SET;
-        }
-        dlog("pressed secondary, %d", mapping->secondary);
+        open_binding_popup(ctx, &mapping->secondary);
     }
 }
 
@@ -198,6 +218,8 @@ static void binding_panel(mu_Context *ctx, ControllerConfig *cfg)
         binding_row(ctx, "Analog Down", &cfg->down);
         binding_row(ctx, "Analog Left", &cfg->left);
         binding_row(ctx, "Analog Right", &cfg->right);
+
+        binding_popup(ctx);
 
         mu_end_treenode(ctx);
     }
