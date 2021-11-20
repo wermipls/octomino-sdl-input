@@ -159,17 +159,17 @@ static void open_binding_popup(mu_Context *ctx, enum ButtonAxis *ba)
 static void binding_popup(mu_Context *ctx)
 {
     if (mu_begin_popup(ctx, popup_name)) {
-        if (mu_button(ctx, "Next")) {
-            ++*popup_ba;
-            if (*popup_ba >= CONTROLLER_ENUM_END) {
-                *popup_ba = CONTROLLER_NOT_SET;
+        mu_Container *popup = mu_get_current_container(ctx);
+
+        const int widths[] = {125, 125};
+        mu_layout_row(ctx, 2, widths, 0);
+
+        for (enum ButtonAxis i = CONTROLLER_NOT_SET; i < CONTROLLER_ENUM_END; ++i) {
+            const char *label = get_con_buttonaxis_name(i);
+            if (mu_button_ex_id(ctx, label, i, 0, MU_OPT_ALIGNCENTER)) {
+                *popup_ba = i;
+                popup->open = 0;
             }
-        }
-        if (mu_button(ctx, "Previous")) {
-            if (*popup_ba == CONTROLLER_NOT_SET) {
-                *popup_ba = CONTROLLER_ENUM_END;
-            }
-            --*popup_ba;
         }
         mu_end_popup(ctx);
     }
