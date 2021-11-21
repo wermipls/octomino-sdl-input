@@ -153,7 +153,14 @@ static const char popup_name[] = "Binding Popup";
 static void open_binding_popup(mu_Context *ctx, enum ButtonAxis *ba)
 {
     popup_ba = ba;
-    mu_open_popup(ctx, popup_name);
+
+    mu_Container *cnt = mu_get_container(ctx, popup_name);
+    /* set as hover root so popup isn't closed in begin_window_ex()  */
+    ctx->hover_root = ctx->next_hover_root = cnt;
+    /* set position, open and bring-to-front */
+    cnt->rect = mu_rect(150, 150, 1, 1);
+    cnt->open = 1;
+    mu_bring_to_front(ctx, cnt);
 }
 
 static void binding_popup(mu_Context *ctx)
