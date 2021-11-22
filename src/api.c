@@ -17,6 +17,8 @@ BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpReserved)
     switch (fdwReason)
     {
     case DLL_PROCESS_ATTACH:
+        InitializeCriticalSection(&critical_section);
+
         // make a log file
         CreateDirectoryA("Logs", NULL);
         logfile = fopen("Logs\\" PLUGIN_NAME ".txt", "w");
@@ -34,6 +36,8 @@ BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpReserved)
     case DLL_PROCESS_DETACH:
         fclose(logfile);
         config_deinit();
+
+        DeleteCriticalSection(&critical_section);
         break;
     }
     return TRUE;
@@ -224,6 +228,8 @@ EXPORT void CALL GetKeys(int Control, BUTTONS *Keys)
 
     Keys->Value = 0;
 
+    EnterCriticalSection(&critical_section);
+
     Keys->R_DPAD = get_state_mapping_button(&i, &concfg.dright);
     Keys->L_DPAD = get_state_mapping_button(&i, &concfg.dleft);
     Keys->D_DPAD = get_state_mapping_button(&i, &concfg.ddown);
@@ -243,6 +249,8 @@ EXPORT void CALL GetKeys(int Control, BUTTONS *Keys)
     int16_t x = get_state_mapping_axis(&i, &concfg.right, &concfg.left);
     int16_t y = get_state_mapping_axis(&i, &concfg.down, &concfg.up);
     scale_and_limit(&x, &y, concfg.deadzone, concfg.outer_edge);
+
+    LeaveCriticalSection(&critical_section);
 
     n64_analog(
         Keys,

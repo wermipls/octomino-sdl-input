@@ -11,6 +11,8 @@
 #include <limits.h>
 #include "gui.h"
 
+CRITICAL_SECTION critical_section; 
+
 FILE *logfile;
 char dbpath[PATH_MAX];
 
@@ -20,6 +22,8 @@ int joy_inst = -1;
 
 void try_init(void)
 {
+    EnterCriticalSection(&critical_section);
+
     if (initialized) return;
     dlog("Initializing");
 
@@ -41,6 +45,8 @@ void try_init(void)
     }
     else
         dlog("    SDL has failed to initialize");
+
+    LeaveCriticalSection(&critical_section);
 }
 
 void deinit(void)
@@ -55,8 +61,14 @@ void deinit(void)
 
 void con_open(void)
 {
-    if (!initialized) try_init();
-    if (!initialized || con != NULL) return;
+    EnterCriticalSection(&critical_section);
+    if (!initialized) {
+        try_init();
+    }
+    if (!initialized || con != NULL) {
+        LeaveCriticalSection(&critical_section);
+        return;
+    }
 
     dlog("Attempting to open a controller");
     dlog("    # of joysticks: %d", SDL_NumJoysticks());
@@ -97,6 +109,8 @@ void con_open(void)
 
     if (con == NULL)
         dlog("    Couldn't find a viable controller :(");
+    
+    LeaveCriticalSection(&critical_section);
 }
 
 void con_close(void)

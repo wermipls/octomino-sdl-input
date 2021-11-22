@@ -331,8 +331,16 @@ static int text_height(mu_Font font) {
 
 
 void config_window() {
-    if (window_open)
+    EnterCriticalSection(&critical_section);
+
+    if (!initialized) {
+        LeaveCriticalSection(&critical_section);
         return;
+    }
+    if (window_open) {
+        LeaveCriticalSection(&critical_section);
+        return;
+    }
 
     window_open = 1;
 
@@ -346,12 +354,13 @@ void config_window() {
     context->text_height = text_height;
 
     /* main loop */
-    for (;;) {
+    while (window_open) {
+        LeaveCriticalSection(&critical_section);
         /* handle SDL events */
         SDL_Event e;
         while (SDL_PollEvent(&e)) {
             switch (e.type) {
-                case SDL_QUIT: gui_deinit(); return;
+                case SDL_QUIT: gui_deinit(); break;
                 case SDL_MOUSEMOTION: mu_input_mousemove(context, e.motion.x, e.motion.y); break;
                 case SDL_MOUSEWHEEL: mu_input_scroll(context, 0, e.wheel.y * -30); break;
                 case SDL_TEXTINPUT: mu_input_text(context, e.text.text); break;
@@ -375,7 +384,9 @@ void config_window() {
         }
 
         /* process frame */
+        EnterCriticalSection(&critical_section);
         process_frame(context);
+        LeaveCriticalSection(&critical_section);
 
         /* render */
         r_clear(mu_color(bg[0], bg[1], bg[2], 255));
@@ -389,12 +400,19 @@ void config_window() {
             }
         }
         r_present();
+
+        EnterCriticalSection(&critical_section);
     }
+
+    free(context);
+    r_close();
+
+    LeaveCriticalSection(&critical_section);
 }
 
 void gui_deinit()
 {
+    EnterCriticalSection(&critical_section);
     window_open = 0;
-    free(context);
-    r_close();
+    LeaveCriticalSection(&critical_section);
 }
