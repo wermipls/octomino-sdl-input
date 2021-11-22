@@ -81,3 +81,4 @@ extern char configpath[];
 void config_load();
 void config_save();
 void config_initialize();
+void config_deinit();

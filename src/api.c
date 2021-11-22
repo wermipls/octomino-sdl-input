@@ -33,6 +33,7 @@ BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpReserved)
         break;
     case DLL_PROCESS_DETACH:
         fclose(logfile);
+        config_deinit();
         break;
     }
     return TRUE;

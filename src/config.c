@@ -297,3 +297,8 @@ void config_initialize()
 
     config_load();
 }
+
+void config_deinit()
+{
+    ini_destroy(configini);
+}
