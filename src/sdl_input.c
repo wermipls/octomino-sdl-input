@@ -28,7 +28,7 @@ void try_init(void)
     dlog("Initializing");
 
     SDL_SetMainReady();
-    if (!SDL_Init(SDL_INIT_EVERYTHING))
+    if (!SDL_Init(SDL_INIT_GAMECONTROLLER))
     {
         /* deal with the unnessessary initial controller connected
            events so they don't clog up the log file */
