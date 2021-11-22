@@ -51,12 +51,18 @@ void try_init(void)
 
 void deinit(void)
 {
-    if (!initialized) return;
+    EnterCriticalSection(&critical_section);
+    if (!initialized) {
+        LeaveCriticalSection(&critical_section);
+        return;
+    }
+
     dlog("Deinitializing");
 
     con_close();
     SDL_Quit();
     initialized = 0;
+    LeaveCriticalSection(&critical_section);
 }
 
 void con_open(void)
@@ -115,13 +121,18 @@ void con_open(void)
 
 void con_close(void)
 {
+    EnterCriticalSection(&critical_section);
     if (!initialized && con != NULL) con = NULL;
-    if (!initialized || con == NULL) return;
+    if (!initialized || con == NULL) {
+        LeaveCriticalSection(&critical_section);
+        return;
+    }
 
     dlog("Closing current controller");
     SDL_GameControllerClose(con);
     con = NULL;
     joy_inst = -1;
+    LeaveCriticalSection(&critical_section);
 }
 
 int16_t threshold(int16_t val, float cutoff)
@@ -195,11 +206,16 @@ int16_t smax(int16_t val, int16_t max)
 
 void con_get_inputs(inputs_t *i)
 {
+    EnterCriticalSection(&critical_section);
     if (!initialized)
     {
         try_init();
-        if (!initialized) return;
+        if (!initialized) {
+            LeaveCriticalSection(&critical_section);
+            return;
+        }
     }
+    LeaveCriticalSection(&critical_section);
 
     SDL_Event e;
     while (SDL_PollEvent(&e))
@@ -228,8 +244,10 @@ void con_get_inputs(inputs_t *i)
             break;
         }
 
+    EnterCriticalSection(&critical_section);
     if (con != NULL)
         con_write_inputs(i);
+    LeaveCriticalSection(&critical_section);
 }
 
 static inline uint8_t con_get_but(SDL_GameControllerButton b)
