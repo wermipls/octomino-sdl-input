@@ -97,10 +97,10 @@ void con_open(void)
             dlog("        Joystick GUID: %s", guidstr);
 
             char *mapping = SDL_GameControllerMapping(con);
-            if (mapping != NULL)
+            if (mapping != NULL) {
                 dlog("        Controller mapping: %s", mapping);
-            else
-            {
+                SDL_free(mapping);
+            } else {
                 dlog("        This controller has no mapping! Closing it");
                 // skip this controller
                 con_close();
