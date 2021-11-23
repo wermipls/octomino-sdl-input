@@ -301,7 +301,7 @@ void dlog(const char *fmt, ...)
     va_list args;
     va_start(args, fmt);
     vfprintf(logfile, fmt, args);
-    vsprintf(buf, fmt, args);
+    vsnprintf(buf, sizeof(buf), fmt, args);
     write_log(buf);
     va_end(args);
 

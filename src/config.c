@@ -37,9 +37,9 @@ static ini_t *ini_load_file(FILE *f)
     return ini;
 }
 
-static int float2str(float f, char *dest)
+static int float2str(float f, char *dest, int size)
 {
-    return sprintf(dest, "%f", f);
+    return snprintf(dest, size, "%f", f);
 }
 
 static void set_property(ini_t *ini, int section_n, const char property[], char prop_val[])
@@ -57,7 +57,7 @@ static void set_property(ini_t *ini, int section_n, const char property[], char 
 static void set_property_float(ini_t *ini, int section_n, const char property[], float val)
 {
     char prop_val[64];
-    float2str(val, prop_val);
+    float2str(val, prop_val, sizeof(prop_val));
 
     set_property(ini, section_n, property, prop_val);
 }
@@ -90,7 +90,7 @@ static float read_property_float(ini_t *ini, int section_n, const char property[
     int prop_n = ini_find_property(ini, section_n, property, 0);
     if (prop_n == INI_NOT_FOUND) {
         char prop_val[64];
-        float2str(defaultval, prop_val);
+        float2str(defaultval, prop_val, sizeof(prop_val));
         ini_property_add(ini, section_n, property, 0, prop_val, 0);
         dlog("INI: property %s not found, initializing with default %s", property, prop_val);
         return defaultval;
