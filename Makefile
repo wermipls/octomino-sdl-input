@@ -10,7 +10,7 @@ SRC      = $(wildcard src/*.c)
 DBURL    = https://raw.githubusercontent.com/gabomdq/SDL_GameControllerDB/master/gamecontrollerdb.txt
 
 ZIPNAME  = $(BIN:.dll=)-$(VERSION).zip
-ZIPFILES = $(BIN) LICENSE README.md CHANGELOG.md gamecontrollerdb.txt sources.zip
+ZIPFILES = $(BIN) LICENSE README.md gamecontrollerdb.txt sources.zip
 ZIPSRC   = $(wildcard src/*.c) $(wildcard src/*.h) $(wildcard src/*.inl) Makefile
 
 CC       = i686-w64-mingw32-gcc
