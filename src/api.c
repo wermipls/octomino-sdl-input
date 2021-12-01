@@ -55,7 +55,7 @@ EXPORT void CALL DllAbout(HWND hParent)
     MessageBoxA(
         hParent,
         PLUGIN_ABOUT,
-        "About " PLUGIN_NAME " v" PLUGIN_VERSION,
+        "About " PLUGIN_NAME,
         MB_ICONINFORMATION
     );
 }
@@ -75,7 +75,7 @@ EXPORT void CALL GetDllInfo(PLUGIN_INFO * PluginInfo)
     snprintf(
         PluginInfo->Name,
         sizeof(PluginInfo->Name),
-        "%s v%s",
+        "%s (%s)",
         PLUGIN_NAME, PLUGIN_VERSION
     );
 }

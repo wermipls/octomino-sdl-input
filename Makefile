@@ -1,7 +1,7 @@
 .POSIX:
 NAME     = Octomino's SDL Input
 COMMIT   = $(shell git describe --always --dirty --match 'NOT A TAG')
-VERSION  = 0.1.1-wermi-$(COMMIT)
+VERSION  = wermi-$(COMMIT)
 REPO     = https://github.com/wermipls/octomino-sdl-input
 
 BIN      = octomino-sdl-input.dll
