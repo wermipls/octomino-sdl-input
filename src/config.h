@@ -36,6 +36,13 @@ enum ButtonAxis
     CONTROLLER_ENUM_END,
 };
 
+enum ConfigType
+{
+    CONFIG_INT,
+    CONFIG_FLOAT,
+    CONFIG_MAPPING,
+};
+
 typedef struct ControlllerMapping
 {
     enum ButtonAxis primary;
@@ -73,6 +80,13 @@ typedef struct ControllerConfig
     ControllerMapping left;
     ControllerMapping right;
 } ControllerConfig;
+
+typedef struct ControllerConfigInfo
+{
+    enum ConfigType type;
+    char property[64];
+    int struct_offset;
+} ControllerConfigInfo;
 
 extern ControllerConfig concfg;
 

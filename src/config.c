@@ -12,6 +12,36 @@ static const char suffix_secondary[] = "_secondary";
 
 ini_t *configini;
 
+static const ControllerConfigInfo concfg_field_info[] = {
+    { CONFIG_FLOAT,   "deadzone",      offsetof(ControllerConfig, deadzone) },
+    { CONFIG_FLOAT,   "outer_edge",    offsetof(ControllerConfig, outer_edge) },
+    { CONFIG_INT,     "range",         offsetof(ControllerConfig, range) },
+    { CONFIG_INT,     "is_clamped",    offsetof(ControllerConfig, is_clamped) },
+
+    { CONFIG_FLOAT,   "a2d_threshold", offsetof(ControllerConfig, a2d_threshold) },
+
+    { CONFIG_MAPPING, "a",             offsetof(ControllerConfig, a) },
+    { CONFIG_MAPPING, "b",             offsetof(ControllerConfig, b) },
+    { CONFIG_MAPPING, "z",             offsetof(ControllerConfig, z) },
+    { CONFIG_MAPPING, "l",             offsetof(ControllerConfig, l) },
+    { CONFIG_MAPPING, "r",             offsetof(ControllerConfig, r) },
+    { CONFIG_MAPPING, "start",         offsetof(ControllerConfig, start) },
+    { CONFIG_MAPPING, "dup",           offsetof(ControllerConfig, dup) },
+    { CONFIG_MAPPING, "ddown",         offsetof(ControllerConfig, ddown) },
+    { CONFIG_MAPPING, "dleft",         offsetof(ControllerConfig, dleft) },
+    { CONFIG_MAPPING, "dright",        offsetof(ControllerConfig, dright) },
+    { CONFIG_MAPPING, "cup",           offsetof(ControllerConfig, cup) },
+    { CONFIG_MAPPING, "cdown",         offsetof(ControllerConfig, cdown) },
+    { CONFIG_MAPPING, "cleft",         offsetof(ControllerConfig, cleft) },
+    { CONFIG_MAPPING, "cright",        offsetof(ControllerConfig, cright) },
+    { CONFIG_MAPPING, "up",            offsetof(ControllerConfig, up) },
+    { CONFIG_MAPPING, "down",          offsetof(ControllerConfig, down) },
+    { CONFIG_MAPPING, "left",          offsetof(ControllerConfig, left) },
+    { CONFIG_MAPPING, "right",         offsetof(ControllerConfig, right) },
+};
+
+static const int concfg_field_count = sizeof(concfg_field_info) / sizeof(concfg_field_info[0]);
+
 static ini_t *ini_load_file(FILE *f)
 {
     fseek(f, 0, SEEK_END);
@@ -138,32 +168,28 @@ static void config_load_con(ControllerConfig *cfg, ini_t *ini, char con_id)
     }
 
     // read properties
-    cfg->deadzone = read_property_float(ini, section_n, "deadzone", cfg->deadzone);
-    cfg->outer_edge = read_property_float(ini, section_n, "outer_edge", cfg->outer_edge);
-    cfg->range = read_property_int(ini, section_n, "range", cfg->range);
-    cfg->is_clamped = read_property_int(ini, section_n, "is_clamped", cfg->is_clamped);
+    for (int i = 0; i < concfg_field_count; ++i) {
+        ControllerConfigInfo field = concfg_field_info[i];
 
-    cfg->a2d_threshold = read_property_float(ini, section_n, "a2d_threshold", cfg->a2d_threshold);
+        void *p = (void*)cfg + field.struct_offset;
 
-    // mapping cfg
-    read_property_mapping(ini, section_n, "a", &cfg->a);
-    read_property_mapping(ini, section_n, "b", &cfg->b);
-    read_property_mapping(ini, section_n, "z", &cfg->z);
-    read_property_mapping(ini, section_n, "l", &cfg->l);
-    read_property_mapping(ini, section_n, "r", &cfg->r);
-    read_property_mapping(ini, section_n, "start", &cfg->start);
-    read_property_mapping(ini, section_n, "dup", &cfg->dup);
-    read_property_mapping(ini, section_n, "ddown", &cfg->ddown);
-    read_property_mapping(ini, section_n, "dleft", &cfg->dleft);
-    read_property_mapping(ini, section_n, "dright", &cfg->dright);
-    read_property_mapping(ini, section_n, "cup", &cfg->cup);
-    read_property_mapping(ini, section_n, "cdown", &cfg->cdown);
-    read_property_mapping(ini, section_n, "cleft", &cfg->cleft);
-    read_property_mapping(ini, section_n, "cright", &cfg->cright);
-    read_property_mapping(ini, section_n, "up", &cfg->up);
-    read_property_mapping(ini, section_n, "down", &cfg->down);
-    read_property_mapping(ini, section_n, "left", &cfg->left);
-    read_property_mapping(ini, section_n, "right", &cfg->right);
+        int *val_i = p;
+        float *val_f = p;
+        ControllerMapping *val_m = p;
+
+        switch (field.type) 
+        {
+            case CONFIG_INT:
+                *val_i = read_property_int(ini, section_n, field.property, *val_i);
+                break;
+            case CONFIG_FLOAT:
+                *val_f = read_property_float(ini, section_n, field.property, *val_f);
+                break;
+            case CONFIG_MAPPING:
+                read_property_mapping(ini, section_n, field.property, val_m);
+                break;
+        }
+    }
 
     return;
 }
@@ -181,32 +207,28 @@ static void config_save_con(ControllerConfig *cfg, ini_t *ini, char con_id)
     }
 
     // save properties
-    set_property_float(ini, section_n, "deadzone", cfg->deadzone);
-    set_property_float(ini, section_n, "outer_edge", cfg->outer_edge);
-    set_property_int(ini, section_n, "range", cfg->range);
-    set_property_int(ini, section_n, "is_clamped", cfg->is_clamped);
+    for (int i = 0; i < concfg_field_count; ++i) {
+        ControllerConfigInfo field = concfg_field_info[i];
 
-    set_property_float(ini, section_n, "a2d_threshold", cfg->a2d_threshold);
+        void *p = (void*)cfg + field.struct_offset;
 
-    // mapping cfg
-    set_property_mapping(ini, section_n, "a", &cfg->a);
-    set_property_mapping(ini, section_n, "b", &cfg->b);
-    set_property_mapping(ini, section_n, "z", &cfg->z);
-    set_property_mapping(ini, section_n, "l", &cfg->l);
-    set_property_mapping(ini, section_n, "r", &cfg->r);
-    set_property_mapping(ini, section_n, "start", &cfg->start);
-    set_property_mapping(ini, section_n, "dup", &cfg->dup);
-    set_property_mapping(ini, section_n, "ddown", &cfg->ddown);
-    set_property_mapping(ini, section_n, "dleft", &cfg->dleft);
-    set_property_mapping(ini, section_n, "dright", &cfg->dright);
-    set_property_mapping(ini, section_n, "cup", &cfg->cup);
-    set_property_mapping(ini, section_n, "cdown", &cfg->cdown);
-    set_property_mapping(ini, section_n, "cleft", &cfg->cleft);
-    set_property_mapping(ini, section_n, "cright", &cfg->cright);
-    set_property_mapping(ini, section_n, "up", &cfg->up);
-    set_property_mapping(ini, section_n, "down", &cfg->down);
-    set_property_mapping(ini, section_n, "left", &cfg->left);
-    set_property_mapping(ini, section_n, "right", &cfg->right);
+        int *val_i = p;
+        float *val_f = p;
+        ControllerMapping *val_m = p;
+
+        switch (field.type) 
+        {
+            case CONFIG_INT:
+                set_property_int(ini, section_n, field.property, *val_i);
+                break;
+            case CONFIG_FLOAT:
+                set_property_float(ini, section_n, field.property, *val_f);
+                break;
+            case CONFIG_MAPPING:
+                set_property_mapping(ini, section_n, field.property, val_m);
+                break;
+        }
+    }
 
     return;
 }
