@@ -47,10 +47,8 @@ static void set_property(ini_t *ini, int section_n, const char property[], char 
     int prop_n = ini_find_property(ini, section_n, property, 0);
     if (prop_n == INI_NOT_FOUND) {
         ini_property_add(ini, section_n, property, 0, prop_val, 0);
-        dlog("INI: property %s not found, initializing with %s", property, prop_val);
     } else {
         ini_property_value_set(ini, section_n, prop_n, prop_val, 0);
-        dlog("INI: property %s found, setting value to %s", property, prop_val);
     }
 }
 
@@ -92,11 +90,9 @@ static float read_property_float(ini_t *ini, int section_n, const char property[
         char prop_val[64];
         float2str(defaultval, prop_val, sizeof(prop_val));
         ini_property_add(ini, section_n, property, 0, prop_val, 0);
-        dlog("INI: property %s not found, initializing with default %s", property, prop_val);
         return defaultval;
     } else {
         const char *prop_val = ini_property_value(ini, section_n, prop_n);
-        dlog("INI: property %s found, value: %s", property, prop_val);
         return atof(prop_val);
     }
 }
@@ -108,11 +104,9 @@ static float read_property_int(ini_t *ini, int section_n, const char property[],
         char prop_val[64];
         itoa(defaultval, prop_val, 10);
         ini_property_add(ini, section_n, property, 0, prop_val, 0);
-        dlog("INI: property %s not found, initializing with default %s", property, prop_val);
         return defaultval;
     } else {
         const char *prop_val = ini_property_value(ini, section_n, prop_n);
-        dlog("INI: property %s found, value: %s", property, prop_val);
         return atoi(prop_val);
     }
 }
@@ -140,7 +134,6 @@ static void config_load_con(ControllerConfig *cfg, ini_t *ini, char con_id)
 
     int section_n = ini_find_section(ini, section, 0);
     if (section_n == INI_NOT_FOUND) {
-        dlog("INI: section %s not found", section);
         section_n = ini_section_add(ini, section, 0);
     }
 
@@ -184,7 +177,6 @@ static void config_save_con(ControllerConfig *cfg, ini_t *ini, char con_id)
 
     int section_n = ini_find_section(ini, section, 0);
     if (section_n == INI_NOT_FOUND) {
-        dlog("INI: section %s not found", section);
         section_n = ini_section_add(ini, section, 0);
     }
 
@@ -227,10 +219,10 @@ void config_load()
     }
     if (configfile != NULL) {
         configini = ini_load_file(configfile);
-        dlog("INI: loaded file %s", configpath, configini);
+        dlog("Loaded config file %s", configpath);
     } else {
         configini = ini_create(0);
-        dlog("INI: unable to open file %s", configpath);
+        dlog("Unable to open config file %s", configpath);
     }
     fclose(configfile);
 
