@@ -42,6 +42,46 @@ static const ControllerConfigInfo concfg_field_info[] = {
 
 static const int concfg_field_count = sizeof(concfg_field_info) / sizeof(concfg_field_info[0]);
 
+static void concfg_set_defaults(ControllerConfig *cfg)
+{
+    // default values
+    cfg->deadzone = 0.05;
+    cfg->range = 80;
+    cfg->outer_edge = 0.95;
+    cfg->is_clamped = 0;
+
+    cfg->a2d_threshold = 0.25;
+
+    // default controls
+    cfg->a.primary        = CONTROLLER_A;
+    cfg->a.secondary      = CONTROLLER_B;
+
+    cfg->b.primary        = CONTROLLER_X;
+    cfg->b.secondary      = CONTROLLER_Y;
+
+    cfg->z.primary        = CONTROLLER_LTRIG;
+    cfg->l.primary        = CONTROLLER_LSHOULDER;
+    cfg->r.primary        = CONTROLLER_RTRIG;
+    cfg->r.secondary      = CONTROLLER_RSHOULDER;
+
+    cfg->start.primary    = CONTROLLER_START;
+
+    cfg->dup.primary      = CONTROLLER_DUP;
+    cfg->ddown.primary    = CONTROLLER_DDOWN;
+    cfg->dleft.primary    = CONTROLLER_DLEFT;
+    cfg->dright.primary   = CONTROLLER_DRIGHT;
+
+    cfg->cup.primary      = CONTROLLER_RIGHTY_MIN;
+    cfg->cdown.primary    = CONTROLLER_RIGHTY;
+    cfg->cleft.primary    = CONTROLLER_RIGHTX_MIN;
+    cfg->cright.primary   = CONTROLLER_RIGHTX;
+
+    cfg->up.primary       = CONTROLLER_LEFTY_MIN;
+    cfg->down.primary     = CONTROLLER_LEFTY;
+    cfg->left.primary     = CONTROLLER_LEFTX_MIN;
+    cfg->right.primary    = CONTROLLER_LEFTX;
+}
+
 static ini_t *ini_load_file(FILE *f)
 {
     fseek(f, 0, SEEK_END);
@@ -272,43 +312,7 @@ void config_save()
 
 void config_initialize()
 {
-    // default values
-    concfg.deadzone = 0.05;
-    concfg.range = 80;
-    concfg.outer_edge = 0.95;
-    concfg.is_clamped = 0;
-
-    concfg.a2d_threshold = 0.25;
-
-    // default controls
-    concfg.a.primary        = CONTROLLER_A;
-    concfg.a.secondary      = CONTROLLER_B;
-
-    concfg.b.primary        = CONTROLLER_X;
-    concfg.b.secondary      = CONTROLLER_Y;
-
-    concfg.z.primary        = CONTROLLER_LTRIG;
-    concfg.l.primary        = CONTROLLER_LSHOULDER;
-    concfg.r.primary        = CONTROLLER_RTRIG;
-    concfg.r.secondary      = CONTROLLER_RSHOULDER;
-
-    concfg.start.primary    = CONTROLLER_START;
-
-    concfg.dup.primary      = CONTROLLER_DUP;
-    concfg.ddown.primary    = CONTROLLER_DDOWN;
-    concfg.dleft.primary    = CONTROLLER_DLEFT;
-    concfg.dright.primary   = CONTROLLER_DRIGHT;
-
-    concfg.cup.primary      = CONTROLLER_RIGHTY_MIN;
-    concfg.cdown.primary    = CONTROLLER_RIGHTY;
-    concfg.cleft.primary    = CONTROLLER_RIGHTX_MIN;
-    concfg.cright.primary   = CONTROLLER_RIGHTX;
-
-    concfg.up.primary       = CONTROLLER_LEFTY_MIN;
-    concfg.down.primary     = CONTROLLER_LEFTY;
-    concfg.left.primary     = CONTROLLER_LEFTX_MIN;
-    concfg.right.primary    = CONTROLLER_LEFTX;
-
+    concfg_set_defaults(&concfg);
     config_load();
 }
 
