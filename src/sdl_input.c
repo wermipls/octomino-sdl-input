@@ -224,6 +224,7 @@ void con_get_inputs(inputs_t *i)
     EnterCriticalSection(&critical_section);
     if (!initialized)
     {
+        dlog("Attempting to get inputs but SDL is not initialized");
         try_init();
         if (!initialized) {
             LeaveCriticalSection(&critical_section);

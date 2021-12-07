@@ -45,6 +45,7 @@ BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpReserved)
 
 EXPORT void CALL CloseDLL(void)
 {
+    dlog("CloseDLL() call");
     deinit();
 }
 
@@ -52,6 +53,7 @@ EXPORT void CALL CloseDLL(void)
 
 EXPORT void CALL DllAbout(HWND hParent)
 {
+    dlog("DllAbout() call");
     MessageBoxA(
         hParent,
         PLUGIN_ABOUT,
@@ -62,6 +64,7 @@ EXPORT void CALL DllAbout(HWND hParent)
 
 EXPORT void CALL DllConfig(HWND hParent)
 {
+    dlog("DllConfig() call");
     con_open();
     config_window();
 }
@@ -275,6 +278,7 @@ EXPORT void CALL InitiateControllers(HWND hMainWindow, CONTROL Controls[4])
 
 EXPORT void CALL RomOpen(void)
 {
+    dlog("RomOpen() call");
     con_open();
 }
 
