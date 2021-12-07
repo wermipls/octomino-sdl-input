@@ -24,7 +24,11 @@ void try_init(void)
 {
     EnterCriticalSection(&critical_section);
 
-    if (initialized) return;
+    if (initialized) {
+        dlog("Attempted initialize, but SDL is already initialized");
+        LeaveCriticalSection(&critical_section);
+        return;
+    }
     dlog("Initializing");
 
     SDL_SetMainReady();
@@ -68,15 +72,26 @@ void deinit(void)
 void con_open(void)
 {
     EnterCriticalSection(&critical_section);
+
+    dlog("Attempting to open a controller");
+
     if (!initialized) {
+        dlog("...but SDL is not initialized yet");
         try_init();
     }
-    if (!initialized || con != NULL) {
+
+    if (!initialized) {
+        dlog("Failed to open a controller: SDL not initialized");
         LeaveCriticalSection(&critical_section);
         return;
     }
 
-    dlog("Attempting to open a controller");
+    if (con != NULL) {
+        dlog("Failed to open a controller: controller is not null");
+        LeaveCriticalSection(&critical_section);
+        return;
+    }
+
     dlog("    # of joysticks: %d", SDL_NumJoysticks());
 
     // open the first available controller
