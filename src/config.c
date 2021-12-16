@@ -6,6 +6,7 @@
 #include "ini.h"
 #include "config.h"
 #include <stdio.h>
+#include <errno.h>
 #include "sdl_input.h"
 
 ControllerConfig concfg;
@@ -288,7 +289,7 @@ void config_load()
         dlog("Loaded config file %s", configpath);
     } else {
         configini = ini_create(0);
-        dlog("Unable to open config file %s", configpath);
+        dlog("Unable to open config file %s: %s", configpath, strerror(errno));
     }
     fclose(configfile);
 
@@ -308,8 +309,13 @@ void config_save()
     size = ini_save(configini, data, size);
 
     FILE *configfile = fopen(configpath, "wb");
-    fwrite(data, 1, size, configfile);
-    fclose(configfile);
+    if (configfile == NULL) {
+        dlog("Unable to save config file %s: %s", configpath, strerror(errno));
+    } else {
+        fwrite(data, 1, size, configfile);
+        fclose(configfile);
+        dlog("Saved config file %s", configpath);
+    }
 
     free(data);
 }
