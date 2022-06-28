@@ -61,6 +61,7 @@ typedef struct ControllerConfig
     int is_clamped;
 
     float a2d_threshold;
+    float a2d_trig;
 
     ControllerMapping a;
     ControllerMapping b;

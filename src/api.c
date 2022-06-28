@@ -182,11 +182,15 @@ static int16_t get_state_mapping_button(inputs_t *i, ControllerMapping *mapping)
     int16_t s = get_state_buttonaxis(i, mapping->secondary);
 
     if (mapping->primary >= CONTROLLER_AXIS_BEGIN) {
-        p = threshold(p, concfg.a2d_threshold) != 0;
+        float t = mapping->primary < CONTROLLER_LTRIG ? concfg.a2d_threshold 
+                                                      : concfg.a2d_trig;
+        p = threshold(p, t) != 0;
     }
 
     if (mapping->secondary >= CONTROLLER_AXIS_BEGIN) {
-        s = threshold(s, concfg.a2d_threshold) != 0;
+        float t = mapping->secondary < CONTROLLER_LTRIG ? concfg.a2d_threshold 
+                                                        : concfg.a2d_trig;
+        s = threshold(s, t) != 0;
     }
 
     return p || s;

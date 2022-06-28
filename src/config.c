@@ -24,6 +24,7 @@ static const ControllerConfigInfo concfg_field_info[] = {
     { CONFIG_INT,     "is_clamped",    offsetof(ControllerConfig, is_clamped) },
 
     { CONFIG_FLOAT,   "a2d_threshold", offsetof(ControllerConfig, a2d_threshold) },
+    { CONFIG_FLOAT,   "a2d_trig",      offsetof(ControllerConfig, a2d_trig) },
 
     { CONFIG_MAPPING, "a",             offsetof(ControllerConfig, a) },
     { CONFIG_MAPPING, "b",             offsetof(ControllerConfig, b) },
@@ -56,6 +57,7 @@ static void concfg_set_defaults(ControllerConfig *cfg)
     cfg->is_clamped = 0;
 
     cfg->a2d_threshold = 0.25;
+    cfg->a2d_trig = 0.25;
 
     // default controls
     cfg->a.primary        = CONTROLLER_A;

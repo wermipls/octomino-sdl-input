@@ -242,8 +242,12 @@ static void a2d_panel(mu_Context *ctx, ControllerConfig *cfg)
         const int widths[] = {150, -1};
         mu_layout_row(ctx, 2, widths, 0);
 
-        mu_label(ctx, "Activation threshold");
+        mu_label(ctx, "Stick threshold");
         float *dz = &cfg->a2d_threshold;
+        mu_slider(ctx, dz, 0.f, 1.f);
+
+        mu_label(ctx, "Trigger threshold");
+        dz = &cfg->a2d_trig;
         mu_slider(ctx, dz, 0.f, 1.f);
 
         mu_end_treenode(ctx);
