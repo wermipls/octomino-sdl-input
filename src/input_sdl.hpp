@@ -35,7 +35,7 @@ extern int initialized;
     "\n\nLicensed under the Mozilla Public License 2.0" \
     "\n(http://mozilla.org/MPL/2.0/)"
 
-typedef struct
+typedef struct inputs_t
 {
     uint16_t a       : 1;
     uint16_t b       : 1;

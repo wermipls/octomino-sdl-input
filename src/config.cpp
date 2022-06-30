@@ -4,10 +4,10 @@
 
 #define INI_IMPLEMENTATION
 #include "ini.h"
-#include "config.h"
+#include "config.hpp"
 #include <stdio.h>
 #include <errno.h>
-#include "sdl_input.h"
+#include "input_sdl.hpp"
 
 ControllerConfig concfg;
 char configpath[PATH_MAX] = "Config\\" PLUGIN_NAME ".ini";
@@ -195,12 +195,12 @@ static void read_property_mapping(ini_t *ini, int section_n, const char property
     strncpy(property_buf, property, sizeof(property_buf));
     strncat(property_buf, suffix_primary, sizeof(property_buf)-1);
 
-    val->primary = read_property_int(ini, section_n, property_buf, val->primary);
+    val->primary = (ButtonAxis)read_property_int(ini, section_n, property_buf, val->primary);
 
     strncpy(property_buf, property, sizeof(property_buf));
     strncat(property_buf, suffix_secondary, sizeof(property_buf)-1);
 
-    val->secondary = read_property_int(ini, section_n, property_buf, val->secondary);
+    val->secondary = (ButtonAxis)read_property_int(ini, section_n, property_buf, val->secondary);
 }
 
 static void config_load_con(ControllerConfig *cfg, ini_t *ini, char con_id)
@@ -218,11 +218,11 @@ static void config_load_con(ControllerConfig *cfg, ini_t *ini, char con_id)
     for (int i = 0; i < concfg_field_count; ++i) {
         ControllerConfigInfo field = concfg_field_info[i];
 
-        void *p = (void*)cfg + field.struct_offset;
+        uint8_t *p = (uint8_t *)cfg + field.struct_offset;
 
-        int *val_i = p;
-        float *val_f = p;
-        ControllerMapping *val_m = p;
+        int *val_i = (int *)p;
+        float *val_f = (float *)p;
+        ControllerMapping *val_m = (ControllerMapping *)p;
 
         switch (field.type) 
         {
@@ -257,11 +257,11 @@ static void config_save_con(ControllerConfig *cfg, ini_t *ini, char con_id)
     for (int i = 0; i < concfg_field_count; ++i) {
         ControllerConfigInfo field = concfg_field_info[i];
 
-        void *p = (void*)cfg + field.struct_offset;
+        uint8_t *p = (uint8_t *)cfg + field.struct_offset;
 
-        int *val_i = p;
-        float *val_f = p;
-        ControllerMapping *val_m = p;
+        int *val_i = (int *)p;
+        float *val_f = (float *)p;
+        ControllerMapping *val_m = (ControllerMapping *)p;
 
         switch (field.type) 
         {

@@ -8,9 +8,8 @@
 #include <stdio.h>
 #include <math.h>
 #include "zilmar_controller_1.0.h"
-#include "sdl_input.h"
-#include "gui.h"
-#include "config.h"
+#include "input_sdl.hpp"
+#include "config.hpp"
 
 BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpReserved)
 {
@@ -30,7 +29,7 @@ BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpReserved)
 
         // make/load a config file
         CreateDirectoryA("Config", NULL);
-        config_initialize(&concfg);
+        config_initialize();
 
         break;
     case DLL_PROCESS_DETACH:
@@ -66,7 +65,6 @@ EXPORT void CALL DllConfig(HWND hParent)
 {
     dlog("DllConfig() call");
     con_open();
-    config_window();
 }
 
 //EXPORT void CALL DllTest(HWND hParent) {}
@@ -230,7 +228,7 @@ static int16_t get_state_mapping_axis(inputs_t *i, ControllerMapping *plus, Cont
 
 EXPORT void CALL GetKeys(int Control, BUTTONS *Keys)
 {
-    inputs_t i = {0};
+    inputs_t i;
     con_get_inputs(&i);
 
     Keys->Value = 0;

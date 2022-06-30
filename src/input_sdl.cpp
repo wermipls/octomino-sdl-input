@@ -2,14 +2,13 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-#include "sdl_input.h"
+#include "input_sdl.hpp"
 #define SDL_MAIN_HANDLED
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_gamecontroller.h>
 #include <stdarg.h>
 #include <time.h>
 #include <limits.h>
-#include "gui.h"
 
 CRITICAL_SECTION critical_section; 
 
@@ -318,7 +317,6 @@ void dlog(const char *fmt, ...)
     va_start(args, fmt);
     vfprintf(logfile, fmt, args);
     vsnprintf(buf, sizeof(buf), fmt, args);
-    write_log(buf);
     va_end(args);
 
     fprintf(logfile, "\n");

@@ -5,17 +5,17 @@ VERSION  = wermi-$(COMMIT)
 REPO     = https://github.com/wermipls/octomino-sdl-input
 
 BIN      = octomino-sdl-input.dll
-SRC      = $(wildcard src/*.c)
+SRC      = $(wildcard src/*.cpp)
 
 DBURL    = https://raw.githubusercontent.com/gabomdq/SDL_GameControllerDB/master/gamecontrollerdb.txt
 
 ZIPNAME  = $(BIN:.dll=)-$(VERSION).zip
 ZIPFILES = $(BIN) LICENSE README.md gamecontrollerdb.txt sources.zip
-ZIPSRC   = $(wildcard src/*.c) $(wildcard src/*.h) $(wildcard src/*.inl) Makefile
+ZIPSRC   = $(wildcard src/*.cpp) $(wildcard src/*.hpp) $(wildcard src/*.h) Makefile
 
-CC       = i686-w64-mingw32-gcc
+CC       = i686-w64-mingw32-g++
 OPTFLAGS = -O2 -flto
-CFLAGS   = -std=c11 -MMD -fvisibility=hidden \
+CPPFLAGS = -std=c++17 -MMD -fvisibility=hidden \
            -Wall -Wextra -Wpedantic -Wshadow -Wno-unused-parameter \
            -DPLUGIN_NAME=\""$(NAME)"\" \
            -DPLUGIN_VERSION=\""$(VERSION)"\" \
@@ -24,10 +24,10 @@ LDFLAGS  = -shared -static-libgcc -static \
            -lshlwapi `sdl2-config --static-libs` \
 		   -lopengl32
 
-$(BIN): $(SRC:.c=.o)
+$(BIN): $(SRC:.cpp=.o)
 	$(CC) $(OPTFLAGS) $(CFLAGS) $^ $(LDFLAGS) -o $@
 
--include $(SRC:.c=.d)
+-include $(SRC:.cpp=.d)
 
 $(ZIPNAME): $(ZIPFILES)
 
@@ -46,7 +46,7 @@ update-db:
 	wget $(DBURL)
 
 clean:
-	rm -f $(BIN) $(SRC:.c=.o) $(SRC:.c=.d) $(ZIPNAME) sources.zip
+	rm -f $(BIN) $(SRC:.cpp=.o) $(SRC:.cpp=.d) $(ZIPNAME) sources.zip
 
 debug: OPTFLAGS = -g
 

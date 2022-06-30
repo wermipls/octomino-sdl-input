@@ -40,5 +40,4 @@ This plugin is licensed under the Mozilla Public License 2.0. See
 `LICENSE` or visit <http://mozilla.org/MPL/2.0/>.
 
 Third party libraries used:
-* [microui by rxi](https://github.com/rxi/microui) (MIT, see `src/microui.h` for details)
 * [ini.h by Mattias Gustavsson](https://github.com/mattiasgustavsson/libs/blob/main/ini.h) (MIT, see `src/ini.h` for details)
