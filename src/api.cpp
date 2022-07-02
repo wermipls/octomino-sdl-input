@@ -9,7 +9,25 @@
 #include <math.h>
 #include "zilmar_controller_1.0.h"
 #include "input_sdl.hpp"
+#include "InputSDL.hpp"
 #include "config.hpp"
+
+Input *g_input = nullptr;
+
+void input_initialize()
+{
+    if (g_input != nullptr) return;
+
+    g_input = new InputSDL();
+}
+
+void input_deinitialize()
+{
+    if (g_input == nullptr) return;
+
+    delete g_input;
+    g_input = nullptr;
+}
 
 BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpReserved)
 {
@@ -44,15 +62,17 @@ BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpReserved)
 
 EXPORT void CALL CloseDLL(void)
 {
-    dlog("CloseDLL() call");
-    deinit();
+    DWORD threadid = GetCurrentThreadId();
+    dlog("CloseDLL() call from thread %d", threadid);
+    input_deinitialize();
 }
 
 //EXPORT void CALL ControllerCommand(int Control, BYTE * Command) {}
 
 EXPORT void CALL DllAbout(HWND hParent)
 {
-    dlog("DllAbout() call");
+    DWORD threadid = GetCurrentThreadId();
+    dlog("DllAbout() call from thread %d", threadid);
     MessageBoxA(
         hParent,
         PLUGIN_ABOUT,
@@ -63,8 +83,10 @@ EXPORT void CALL DllAbout(HWND hParent)
 
 EXPORT void CALL DllConfig(HWND hParent)
 {
-    dlog("DllConfig() call");
-    con_open();
+    DWORD threadid = GetCurrentThreadId();
+    dlog("DllConfig() call from thread %d", threadid);
+    input_initialize();
+    dlog("...done?");
 }
 
 //EXPORT void CALL DllTest(HWND hParent) {}
@@ -229,6 +251,7 @@ static int16_t get_state_mapping_axis(inputs_t *i, ControllerMapping *plus, Cont
 EXPORT void CALL GetKeys(int Control, BUTTONS *Keys)
 {
     inputs_t i;
+    input_initialize();
     con_get_inputs(&i);
 
     Keys->Value = 0;
@@ -280,8 +303,9 @@ EXPORT void CALL InitiateControllers(HWND hMainWindow, CONTROL Controls[4])
 
 EXPORT void CALL RomOpen(void)
 {
-    dlog("RomOpen() call");
-    con_open();
+    DWORD threadid = GetCurrentThreadId();
+    dlog("RomOpen() call from thread %d", threadid);
+    input_initialize();
 }
 
 //EXPORT void CALL WM_KeyDown(WPARAM wParam, LPARAM lParam) {}

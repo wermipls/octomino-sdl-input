@@ -9,6 +9,7 @@
 #include <stdarg.h>
 #include <time.h>
 #include <limits.h>
+#include <debugapi.h>
 
 CRITICAL_SECTION critical_section; 
 
@@ -19,14 +20,14 @@ int initialized = 0;
 SDL_GameController *con = NULL;
 int joy_inst = -1;
 
-void try_init(void)
+int try_init(void)
 {
     EnterCriticalSection(&critical_section);
 
     if (initialized) {
         dlog("Attempted initialize, but SDL is already initialized");
         LeaveCriticalSection(&critical_section);
-        return;
+        return -1;
     }
     dlog("Initializing");
 
@@ -46,10 +47,14 @@ void try_init(void)
         initialized = 1;
         dlog("    ...done");
     }
-    else
+    else {
         dlog("    SDL has failed to initialize");
+        LeaveCriticalSection(&critical_section);
+        return -2;
+    }
 
     LeaveCriticalSection(&critical_section);
+    return 0;
 }
 
 void deinit(void)
@@ -318,6 +323,7 @@ void dlog(const char *fmt, ...)
     vfprintf(logfile, fmt, args);
     vsnprintf(buf, sizeof(buf), fmt, args);
     va_end(args);
+    OutputDebugStringA(buf);
 
     fprintf(logfile, "\n");
 }

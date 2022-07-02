@@ -66,7 +66,7 @@ typedef struct inputs_t
     int16_t artrig;
 } inputs_t;
 
-void try_init(void);
+int try_init(void);
 void deinit(void);
 void con_open(void);
 void con_close(void);
