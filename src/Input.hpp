@@ -21,8 +21,8 @@ struct DeviceInfo
 
 struct DeviceState
 {
-    bool button[128];
-    int16_t axis[8];
+    bool button[128] = {0};
+    int16_t axis[8] = {0};
 };
 
 class Input

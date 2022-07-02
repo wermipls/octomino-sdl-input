@@ -155,7 +155,44 @@ DWORD WINAPI sdl_init_thread(LPVOID lpParam)
         return -1;
     }
 
-    WaitForSingleObject(terminate_event, INFINITE);
+    while (WaitForSingleObject(terminate_event, 1) == WAIT_TIMEOUT)
+    {
+        // SDL 2.0.14: fix for SDL_CONTROLLERDEVICEADDED events not showing up
+        // see https://github.com/libsdl-org/SDL/issues/4147 for details
+        MSG msg;
+        while (PeekMessageW(&msg, NULL, 0, 0, PM_REMOVE))
+        {
+            DispatchMessageW(&msg);
+        }
+
+        SDL_Event e;
+        while (SDL_PollEvent(&e)) {
+            switch (e.type)
+            {
+            case SDL_CONTROLLERDEVICEADDED:
+                dlog("A device has been added");
+                if (con == NULL)
+                {
+                    dlog("    ...and there is no active controller");
+                    con_open();
+                }
+                else
+                    dlog("    ...but there is already an active controller");
+                break;
+            case SDL_CONTROLLERDEVICEREMOVED:
+                dlog("A device has been removed");
+                if (e.cdevice.which == joy_inst)
+                {
+                    dlog("    ...it was the active controller");
+                    con_close();
+                    con_open();
+                }
+                else
+                    dlog("    ...it was not the active controller");
+                break;
+            }
+        }
+    }
 
     deinit();
     return 0;
@@ -163,9 +200,9 @@ DWORD WINAPI sdl_init_thread(LPVOID lpParam)
 
 InputSDL::InputSDL()
 {
-    // we create a thread for handling SDL initialization to guarantee both
-    // initialization and deinitialization will happen on the same thread.
-    // without that, we can get bunch of weird crashes
+    // we create a thread for handling SDL initialization to guarantee
+    // (de)initialization and event handling all happen on the same thread.
+    // without that, we can get bunch of weird crashes or other problems
  
     if (terminate_event == NULL) {
         terminate_event = CreateEvent(NULL, FALSE, FALSE, NULL);
@@ -219,34 +256,6 @@ std::vector<DeviceInfo> InputSDL::GetDeviceList()
 DeviceState InputSDL::GetDeviceState(int id)
 {
     DeviceState state;
-
-    SDL_Event e;
-    while (SDL_PollEvent(&e)) {
-        switch (e.type)
-        {
-        case SDL_CONTROLLERDEVICEADDED:
-            dlog("A device has been added");
-            if (con == NULL)
-            {
-                dlog("    ...and there is no active controller");
-                con_open();
-            }
-            else
-                dlog("    ...but there is already an active controller");
-            break;
-        case SDL_CONTROLLERDEVICEREMOVED:
-            dlog("A device has been removed");
-            if (e.cdevice.which == joy_inst)
-            {
-                dlog("    ...it was the active controller");
-                con_close();
-                con_open();
-            }
-            else
-                dlog("    ...it was not the active controller");
-            break;
-        }
-    }
 
     if (con != NULL) {
         for (int i = 0; i < SDL_CONTROLLER_AXIS_MAX; i++) {
