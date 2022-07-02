@@ -203,8 +203,6 @@ EXPORT void CALL GetKeys(int Control, BUTTONS *Keys)
 
     Keys->Value = 0;
 
-    EnterCriticalSection(&g_critical);
-
     Keys->R_DPAD = get_state_mapping_button(&i, &concfg.dright);
     Keys->L_DPAD = get_state_mapping_button(&i, &concfg.dleft);
     Keys->D_DPAD = get_state_mapping_button(&i, &concfg.ddown);
@@ -224,8 +222,6 @@ EXPORT void CALL GetKeys(int Control, BUTTONS *Keys)
     int16_t x = get_state_mapping_axis(&i, &concfg.right, &concfg.left);
     int16_t y = get_state_mapping_axis(&i, &concfg.down, &concfg.up);
     scale_and_limit(&x, &y, concfg.deadzone, concfg.outer_edge);
-
-    LeaveCriticalSection(&g_critical);
 
     n64_analog(
         Keys,

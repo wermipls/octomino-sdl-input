@@ -21,48 +21,10 @@ int initialized = 0;
 SDL_GameController *con = NULL;
 int joy_inst = -1;
 
-int try_init(void)
-{
-    if (initialized) {
-        dlog("Attempted initialize, but SDL is already initialized");
-        return -1;
-    }
-    dlog("Initializing");
-
-    GetModuleFileNameA(g_hinstance, dbpath, sizeof(dbpath));
-    PathRemoveFileSpecA(dbpath);
-    PathCombineA(dbpath, dbpath, "gamecontrollerdb.txt");
-
-    SDL_SetMainReady();
-    if (!SDL_Init(SDL_INIT_GAMECONTROLLER))
-    {
-        /* deal with the unnessessary initial controller connected
-           events so they don't clog up the log file */
-        SDL_FlushEvents(SDL_FIRSTEVENT, SDL_LASTEVENT);
-
-        int mapcount = SDL_GameControllerAddMappingsFromFile(dbpath);
-        if (mapcount == -1)
-            dlog("    Unable to load mappings from %s", dbpath);
-        else
-            dlog("    Successfully loaded %d mappings from %s", mapcount, dbpath);
-
-        initialized = 1;
-        dlog("    ...done");
-    }
-    else {
-        dlog("    SDL has failed to initialize");
-        return -2;
-    }
-
-    return 0;
-}
-
 void con_close(void)
 {
-    EnterCriticalSection(&g_critical);
     if (!initialized && con != NULL) con = NULL;
     if (!initialized || con == NULL) {
-        LeaveCriticalSection(&g_critical);
         return;
     }
 
@@ -70,24 +32,19 @@ void con_close(void)
     SDL_GameControllerClose(con);
     con = NULL;
     joy_inst = -1;
-    LeaveCriticalSection(&g_critical);
 }
 
 void con_open(void)
 {
-    EnterCriticalSection(&g_critical);
-
     dlog("Attempting to open a controller");
 
     if (!initialized) {
         dlog("Failed to open a controller: SDL not initialized");
-        LeaveCriticalSection(&g_critical);
         return;
     }
 
     if (con != NULL) {
         dlog("Failed to open a controller: controller is not null");
-        LeaveCriticalSection(&g_critical);
         return;
     }
 
@@ -128,9 +85,43 @@ void con_open(void)
     }
 
     if (con == NULL)
-        dlog("    Couldn't find a viable controller :(");
-    
-    LeaveCriticalSection(&g_critical);
+        dlog("    Couldn't find a viable controller :(");    
+}
+
+int try_init(void)
+{
+    if (initialized) {
+        dlog("Attempted initialize, but SDL is already initialized");
+        return -1;
+    }
+    dlog("Initializing");
+
+    GetModuleFileNameA(g_hinstance, dbpath, sizeof(dbpath));
+    PathRemoveFileSpecA(dbpath);
+    PathCombineA(dbpath, dbpath, "gamecontrollerdb.txt");
+
+    SDL_SetMainReady();
+    if (!SDL_Init(SDL_INIT_GAMECONTROLLER))
+    {
+        /* deal with the unnessessary initial controller connected
+           events so they don't clog up the log file */
+        SDL_FlushEvents(SDL_FIRSTEVENT, SDL_LASTEVENT);
+
+        int mapcount = SDL_GameControllerAddMappingsFromFile(dbpath);
+        if (mapcount == -1)
+            dlog("    Unable to load mappings from %s", dbpath);
+        else
+            dlog("    Successfully loaded %d mappings from %s", mapcount, dbpath);
+
+        initialized = 1;
+        dlog("    ...done");
+    }
+    else {
+        dlog("    SDL has failed to initialize");
+        return -2;
+    }
+
+    return 0;
 }
 
 void deinit(void)
@@ -223,8 +214,6 @@ InputSDL::InputSDL()
         WaitForSingleObject(sdl_thread_handle, INFINITE);
         throw std::runtime_error("Failed to initialize SDL");
     }
-
-    con_open();
 }
 
 InputSDL::~InputSDL()
@@ -236,8 +225,6 @@ InputSDL::~InputSDL()
 std::vector<DeviceInfo> InputSDL::GetDeviceList()
 {
     auto list = std::vector<DeviceInfo>();
-
-    con_open();
 
     if (con) {
         auto joy = SDL_GameControllerGetJoystick(con);
