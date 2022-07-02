@@ -21,8 +21,8 @@ struct DeviceInfo
 
 struct DeviceState
 {
-    std::vector<bool> button;
-    std::vector<int16_t> axis;
+    bool button[128];
+    int16_t axis[8];
 };
 
 class Input

@@ -2,42 +2,18 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-#include <stdio.h>
+#include <cstdint>
 
-#define CONTROLLER_AXIS_BEGIN CONTROLLER_LEFTX
-
-enum ButtonAxis
+union ButtonAxisID
 {
-    CONTROLLER_NOT_SET,
-
-    CONTROLLER_A,
-    CONTROLLER_B,
-    CONTROLLER_X,
-    CONTROLLER_Y,
-    CONTROLLER_BACK,
-    CONTROLLER_GUIDE,
-    CONTROLLER_START,
-    CONTROLLER_LSTICK,
-    CONTROLLER_RSTICK,
-    CONTROLLER_LSHOULDER,
-    CONTROLLER_RSHOULDER,
-    CONTROLLER_DUP,
-    CONTROLLER_DDOWN,
-    CONTROLLER_DLEFT,
-    CONTROLLER_DRIGHT,
-
-    CONTROLLER_LEFTX,
-    CONTROLLER_LEFTY,
-    CONTROLLER_RIGHTX,
-    CONTROLLER_RIGHTY,
-    CONTROLLER_LEFTX_MIN,
-    CONTROLLER_LEFTY_MIN,
-    CONTROLLER_RIGHTX_MIN,
-    CONTROLLER_RIGHTY_MIN,
-    CONTROLLER_LTRIG,
-    CONTROLLER_RTRIG,
-
-    CONTROLLER_ENUM_END,
+    struct 
+    {
+        int id           : 8;
+        bool is_axis     : 1;
+        bool is_positive : 1;
+        bool is_mapped   : 1;
+    };
+    int16_t value;
 };
 
 enum ConfigType
@@ -47,13 +23,13 @@ enum ConfigType
     CONFIG_MAPPING,
 };
 
-typedef struct ControlllerMapping
+struct ButtonAxisMapping
 {
-    enum ButtonAxis primary;
-    enum ButtonAxis secondary;
-} ControllerMapping;
+    ButtonAxisID primary;
+    ButtonAxisID secondary;
+};
 
-typedef struct ControllerConfig 
+struct ControllerConfig 
 {
     float deadzone;
     float outer_edge;
@@ -63,35 +39,35 @@ typedef struct ControllerConfig
     float a2d_threshold;
     float a2d_trig;
 
-    ControllerMapping a;
-    ControllerMapping b;
-    ControllerMapping z;
-    ControllerMapping l;
-    ControllerMapping r;
-    ControllerMapping start;
+    ButtonAxisMapping a;
+    ButtonAxisMapping b;
+    ButtonAxisMapping z;
+    ButtonAxisMapping l;
+    ButtonAxisMapping r;
+    ButtonAxisMapping start;
 
-    ControllerMapping cup;
-    ControllerMapping cdown;
-    ControllerMapping cleft;
-    ControllerMapping cright;
+    ButtonAxisMapping cup;
+    ButtonAxisMapping cdown;
+    ButtonAxisMapping cleft;
+    ButtonAxisMapping cright;
 
-    ControllerMapping dup;
-    ControllerMapping ddown;
-    ControllerMapping dleft;
-    ControllerMapping dright;
+    ButtonAxisMapping dup;
+    ButtonAxisMapping ddown;
+    ButtonAxisMapping dleft;
+    ButtonAxisMapping dright;
 
-    ControllerMapping up;
-    ControllerMapping down;
-    ControllerMapping left;
-    ControllerMapping right;
-} ControllerConfig;
+    ButtonAxisMapping up;
+    ButtonAxisMapping down;
+    ButtonAxisMapping left;
+    ButtonAxisMapping right;
+};
 
-typedef struct ControllerConfigInfo
+struct ControllerConfigInfo
 {
     enum ConfigType type;
     char property[64];
     int struct_offset;
-} ControllerConfigInfo;
+};
 
 extern ControllerConfig concfg;
 

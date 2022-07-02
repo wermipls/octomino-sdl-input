@@ -3,16 +3,148 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 #include "InputSDL.hpp"
-#include "input_sdl.hpp"
+#include "util.hpp"
 #include <stdio.h>
 #include <stdexcept>
+#define SDL_MAIN_HANDLED
 #include <SDL2/SDL.h>
+#include <SDL2/SDL_gamecontroller.h>
 #include <Shlwapi.h>
 #include <synchapi.h>
 
 HANDLE sdl_thread_handle = NULL;
-HANDLE sdl_init_finish;
-HANDLE terminate_event;
+HANDLE sdl_init_finish = NULL;
+HANDLE terminate_event = NULL;
+
+char dbpath[PATH_MAX];
+int initialized = 0;
+SDL_GameController *con = NULL;
+int joy_inst = -1;
+
+int try_init(void)
+{
+    if (initialized) {
+        dlog("Attempted initialize, but SDL is already initialized");
+        return -1;
+    }
+    dlog("Initializing");
+
+    GetModuleFileNameA(g_hinstance, dbpath, sizeof(dbpath));
+    PathRemoveFileSpecA(dbpath);
+    PathCombineA(dbpath, dbpath, "gamecontrollerdb.txt");
+
+    SDL_SetMainReady();
+    if (!SDL_Init(SDL_INIT_GAMECONTROLLER))
+    {
+        /* deal with the unnessessary initial controller connected
+           events so they don't clog up the log file */
+        SDL_FlushEvents(SDL_FIRSTEVENT, SDL_LASTEVENT);
+
+        int mapcount = SDL_GameControllerAddMappingsFromFile(dbpath);
+        if (mapcount == -1)
+            dlog("    Unable to load mappings from %s", dbpath);
+        else
+            dlog("    Successfully loaded %d mappings from %s", mapcount, dbpath);
+
+        initialized = 1;
+        dlog("    ...done");
+    }
+    else {
+        dlog("    SDL has failed to initialize");
+        return -2;
+    }
+
+    return 0;
+}
+
+void con_close(void)
+{
+    EnterCriticalSection(&g_critical);
+    if (!initialized && con != NULL) con = NULL;
+    if (!initialized || con == NULL) {
+        LeaveCriticalSection(&g_critical);
+        return;
+    }
+
+    dlog("Closing current controller");
+    SDL_GameControllerClose(con);
+    con = NULL;
+    joy_inst = -1;
+    LeaveCriticalSection(&g_critical);
+}
+
+void con_open(void)
+{
+    EnterCriticalSection(&g_critical);
+
+    dlog("Attempting to open a controller");
+
+    if (!initialized) {
+        dlog("Failed to open a controller: SDL not initialized");
+        LeaveCriticalSection(&g_critical);
+        return;
+    }
+
+    if (con != NULL) {
+        dlog("Failed to open a controller: controller is not null");
+        LeaveCriticalSection(&g_critical);
+        return;
+    }
+
+    dlog("    # of joysticks: %d", SDL_NumJoysticks());
+
+    // open the first available controller
+    for (int i = 0; i < SDL_NumJoysticks(); ++i)
+    {
+        if (SDL_IsGameController(i) && (con = SDL_GameControllerOpen(i)) != NULL)
+        {
+            dlog("    Found a viable controller: %s (joystick %d)", SDL_GameControllerName(con), i);
+
+            SDL_Joystick *joy = SDL_GameControllerGetJoystick(con);
+    
+            joy_inst = SDL_JoystickInstanceID(joy);
+            dlog("        Joystick instance ID: %d", joy_inst);
+
+            SDL_JoystickGUID guid = SDL_JoystickGetGUID(joy);
+            char guidstr[33];
+            SDL_JoystickGetGUIDString(guid, guidstr, sizeof(guidstr));
+            dlog("        Joystick GUID: %s", guidstr);
+
+            char *mapping = SDL_GameControllerMapping(con);
+            if (mapping != NULL) {
+                dlog("        Controller mapping: %s", mapping);
+                SDL_free(mapping);
+            } else {
+                dlog("        This controller has no mapping! Closing it");
+                // skip this controller
+                con_close();
+                continue;
+            }
+
+            break;
+        }
+        else
+            dlog("    Couldn't use joystick %d", i);
+    }
+
+    if (con == NULL)
+        dlog("    Couldn't find a viable controller :(");
+    
+    LeaveCriticalSection(&g_critical);
+}
+
+void deinit(void)
+{
+    if (!initialized) {
+        return;
+    }
+
+    dlog("Deinitializing");
+
+    con_close();
+    SDL_Quit();
+    initialized = 0;
+}
 
 DWORD WINAPI sdl_init_thread(LPVOID lpParam)
 {
@@ -88,18 +220,44 @@ DeviceState InputSDL::GetDeviceState(int id)
 {
     DeviceState state;
 
-    state.axis = std::vector<int16_t>(SDL_CONTROLLER_AXIS_MAX);
-
-    for (int i = 0; i < SDL_CONTROLLER_AXIS_MAX; i++) {
-        auto a = (SDL_GameControllerAxis)i;
-        state.axis[i] = SDL_GameControllerGetAxis(con, a);
+    SDL_Event e;
+    while (SDL_PollEvent(&e)) {
+        switch (e.type)
+        {
+        case SDL_CONTROLLERDEVICEADDED:
+            dlog("A device has been added");
+            if (con == NULL)
+            {
+                dlog("    ...and there is no active controller");
+                con_open();
+            }
+            else
+                dlog("    ...but there is already an active controller");
+            break;
+        case SDL_CONTROLLERDEVICEREMOVED:
+            dlog("A device has been removed");
+            if (e.cdevice.which == joy_inst)
+            {
+                dlog("    ...it was the active controller");
+                con_close();
+                con_open();
+            }
+            else
+                dlog("    ...it was not the active controller");
+            break;
+        }
     }
 
-    state.button = std::vector<bool>(SDL_CONTROLLER_BUTTON_MAX);
+    if (con != NULL) {
+        for (int i = 0; i < SDL_CONTROLLER_AXIS_MAX; i++) {
+            auto a = (SDL_GameControllerAxis)i;
+            state.axis[i] = SDL_GameControllerGetAxis(con, a);
+        }
 
-    for (int i = 0; i < SDL_CONTROLLER_BUTTON_MAX; i++) {
-        auto b = (SDL_GameControllerButton)i;
-        state.button[i] = SDL_GameControllerGetButton(con, b);
+        for (int i = 0; i < SDL_CONTROLLER_BUTTON_MAX; i++) {
+            auto b = (SDL_GameControllerButton)i;
+            state.button[i] = SDL_GameControllerGetButton(con, b);
+        }
     }
 
     return state;

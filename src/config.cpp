@@ -7,7 +7,7 @@
 #include "config.hpp"
 #include <stdio.h>
 #include <errno.h>
-#include "input_sdl.hpp"
+#include "util.hpp"
 
 ControllerConfig concfg;
 char configpath[PATH_MAX] = "Config\\" PLUGIN_NAME ".ini";
@@ -60,33 +60,33 @@ static void concfg_set_defaults(ControllerConfig *cfg)
     cfg->a2d_trig = 0.25;
 
     // default controls
-    cfg->a.primary        = CONTROLLER_A;
-    cfg->a.secondary      = CONTROLLER_B;
+    cfg->a.primary        = {0, false, false, true};
+    cfg->a.secondary      = {1, false, false, true};
 
-    cfg->b.primary        = CONTROLLER_X;
-    cfg->b.secondary      = CONTROLLER_Y;
+    cfg->b.primary        = {2, false, false, true};
+    cfg->b.secondary      = {3, false, false, true};
 
-    cfg->z.primary        = CONTROLLER_LTRIG;
-    cfg->l.primary        = CONTROLLER_LSHOULDER;
-    cfg->r.primary        = CONTROLLER_RTRIG;
-    cfg->r.secondary      = CONTROLLER_RSHOULDER;
+    cfg->z.primary        = {4, true, true, true};
+    cfg->l.primary        = {9, false, false, true};
+    cfg->r.primary        = {5, true, true, true};
+    cfg->r.secondary      = {10, false, false, true};
 
-    cfg->start.primary    = CONTROLLER_START;
+    cfg->start.primary    = {6, false, false, true};
 
-    cfg->dup.primary      = CONTROLLER_DUP;
-    cfg->ddown.primary    = CONTROLLER_DDOWN;
-    cfg->dleft.primary    = CONTROLLER_DLEFT;
-    cfg->dright.primary   = CONTROLLER_DRIGHT;
+    cfg->dup.primary      = {11, false, false, true};
+    cfg->ddown.primary    = {12, false, false, true};
+    cfg->dleft.primary    = {13, false, false, true};
+    cfg->dright.primary   = {14, false, false, true};
 
-    cfg->cup.primary      = CONTROLLER_RIGHTY_MIN;
-    cfg->cdown.primary    = CONTROLLER_RIGHTY;
-    cfg->cleft.primary    = CONTROLLER_RIGHTX_MIN;
-    cfg->cright.primary   = CONTROLLER_RIGHTX;
+    cfg->cup.primary      = {3, true, false, true};
+    cfg->cdown.primary    = {3, true, true, true};
+    cfg->cleft.primary    = {2, true, false, true};
+    cfg->cright.primary   = {2, true, true, true};
 
-    cfg->up.primary       = CONTROLLER_LEFTY_MIN;
-    cfg->down.primary     = CONTROLLER_LEFTY;
-    cfg->left.primary     = CONTROLLER_LEFTX_MIN;
-    cfg->right.primary    = CONTROLLER_LEFTX;
+    cfg->up.primary       = {1, true, false, true};
+    cfg->down.primary     = {1, true, true, true};
+    cfg->left.primary     = {0, true, false, true};
+    cfg->right.primary    = {0, true, true, true};
 }
 
 static ini_t *ini_load_file(FILE *f)
@@ -145,19 +145,19 @@ static void set_property_int(ini_t *ini, int section_n, const char property[], i
     set_property(ini, section_n, property, prop_val);
 }
 
-static void set_property_mapping(ini_t *ini, int section_n, const char property[], ControllerMapping *val)
+static void set_property_mapping(ini_t *ini, int section_n, const char property[], ButtonAxisMapping *val)
 {
     char property_buf[64];
 
     strncpy(property_buf, property, sizeof(property_buf));
     strncat(property_buf, suffix_primary, sizeof(property_buf)-1);
 
-    set_property_int(ini, section_n, property_buf, val->primary);
+    set_property_int(ini, section_n, property_buf, val->primary.value);
 
     strncpy(property_buf, property, sizeof(property_buf));
     strncat(property_buf, suffix_secondary, sizeof(property_buf)-1);
 
-    set_property_int(ini, section_n, property_buf, val->secondary);
+    set_property_int(ini, section_n, property_buf, val->secondary.value);
 }
 
 static float read_property_float(ini_t *ini, int section_n, const char property[], float defaultval)
@@ -188,19 +188,19 @@ static float read_property_int(ini_t *ini, int section_n, const char property[],
     }
 }
 
-static void read_property_mapping(ini_t *ini, int section_n, const char property[], ControllerMapping *val)
+static void read_property_mapping(ini_t *ini, int section_n, const char property[], ButtonAxisMapping *val)
 {
     char property_buf[64];
 
     strncpy(property_buf, property, sizeof(property_buf));
     strncat(property_buf, suffix_primary, sizeof(property_buf)-1);
 
-    val->primary = (ButtonAxis)read_property_int(ini, section_n, property_buf, val->primary);
+    val->primary.value = read_property_int(ini, section_n, property_buf, val->primary.value);
 
     strncpy(property_buf, property, sizeof(property_buf));
     strncat(property_buf, suffix_secondary, sizeof(property_buf)-1);
 
-    val->secondary = (ButtonAxis)read_property_int(ini, section_n, property_buf, val->secondary);
+    val->secondary.value = read_property_int(ini, section_n, property_buf, val->secondary.value);
 }
 
 static void config_load_con(ControllerConfig *cfg, ini_t *ini, char con_id)
@@ -222,7 +222,7 @@ static void config_load_con(ControllerConfig *cfg, ini_t *ini, char con_id)
 
         int *val_i = (int *)p;
         float *val_f = (float *)p;
-        ControllerMapping *val_m = (ControllerMapping *)p;
+        ButtonAxisMapping *val_m = (ButtonAxisMapping *)p;
 
         switch (field.type) 
         {
@@ -261,7 +261,7 @@ static void config_save_con(ControllerConfig *cfg, ini_t *ini, char con_id)
 
         int *val_i = (int *)p;
         float *val_f = (float *)p;
-        ControllerMapping *val_m = (ControllerMapping *)p;
+        ButtonAxisMapping *val_m = (ButtonAxisMapping *)p;
 
         switch (field.type) 
         {

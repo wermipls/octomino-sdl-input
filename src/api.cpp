@@ -8,7 +8,7 @@
 #include <stdio.h>
 #include <math.h>
 #include "zilmar_controller_1.0.h"
-#include "input_sdl.hpp"
+#include "util.hpp"
 #include "InputSDL.hpp"
 #include "config.hpp"
 
@@ -34,16 +34,13 @@ BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpReserved)
     switch (fdwReason)
     {
     case DLL_PROCESS_ATTACH:
-        InitializeCriticalSection(&critical_section);
+        g_hinstance = hinstDLL;
+
+        InitializeCriticalSection(&g_critical);
 
         // make a log file
         CreateDirectoryA("Logs", NULL);
         logfile = fopen("Logs\\" PLUGIN_NAME ".txt", "w");
-
-        // get path to gamecontroller.txt
-        GetModuleFileNameA(hinstDLL, dbpath, sizeof(dbpath));
-        PathRemoveFileSpecA(dbpath);
-        PathCombineA(dbpath, dbpath, "gamecontrollerdb.txt");
 
         // make/load a config file
         CreateDirectoryA("Config", NULL);
@@ -54,7 +51,7 @@ BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpReserved)
         fclose(logfile);
         config_deinit();
 
-        DeleteCriticalSection(&critical_section);
+        DeleteCriticalSection(&g_critical);
         break;
     }
     return TRUE;
@@ -134,89 +131,40 @@ static inline void n64_analog(BUTTONS *Keys, int16_t x, int16_t y)
     Keys->X_AXIS = -y;
 }
 
-static int16_t get_state_buttonaxis(inputs_t *i, enum ButtonAxis ba)
+static int16_t get_state_buttonaxis(DeviceState *i, ButtonAxisID ba)
 {
-    switch (ba)
-    {
-        case CONTROLLER_NOT_SET:
-            return 0;
-        case CONTROLLER_A:
-            return i->a;
-        case CONTROLLER_B:
-            return i->b;
-        case CONTROLLER_X:
-            return i->x;
-        case CONTROLLER_Y:
-            return i->y;
-        case CONTROLLER_BACK:
-            return i->back;
-        case CONTROLLER_GUIDE:
-            return i->guide;
-        case CONTROLLER_START:
-            return i->start;
-        case CONTROLLER_LSTICK:
-            return i->lstick;
-        case CONTROLLER_RSTICK:
-            return i->rstick;
-        case CONTROLLER_LSHOULDER:
-            return i->lshoul;
-        case CONTROLLER_RSHOULDER:
-            return i->rshoul;
-        case CONTROLLER_DUP:
-            return i->dup;
-        case CONTROLLER_DDOWN:
-            return i->ddown;
-        case CONTROLLER_DLEFT:
-            return i->dleft;
-        case CONTROLLER_DRIGHT:
-            return i->dright;
-        case CONTROLLER_LEFTX:
-            return smin(i->alx, 0);
-        case CONTROLLER_LEFTX_MIN:
-            return smax(i->alx, 0);
-        case CONTROLLER_RIGHTX:
-            return smin(i->arx, 0);
-        case CONTROLLER_RIGHTX_MIN:
-            return smax(i->arx, 0);
-        case CONTROLLER_LEFTY:
-            return smin(i->aly, 0);
-        case CONTROLLER_LEFTY_MIN:
-            return smax(i->aly, 0);
-        case CONTROLLER_RIGHTY:
-            return smin(i->ary, 0);
-        case CONTROLLER_RIGHTY_MIN:
-            return smax(i->ary, 0);
-        case CONTROLLER_LTRIG:
-            return i->altrig;
-        case CONTROLLER_RTRIG:
-            return i->artrig;
-        default:
-            dlog("con_get_input(): invalid ButtonAxis value %d", ba);
-            return 0;
+    if (!ba.is_mapped) return 0;
+
+    if (ba.is_axis) {
+        if (ba.is_positive) {
+            return smin(i->axis[ba.id], 0);
+        } else {
+            return smax(i->axis[ba.id], 0);
+        }
+    } else {
+        return i->button[ba.id];
     }
 }
 
-static int16_t get_state_mapping_button(inputs_t *i, ControllerMapping *mapping)
+static int16_t get_state_mapping_button(DeviceState *i, ButtonAxisMapping *mapping)
 {
     int16_t p = get_state_buttonaxis(i, mapping->primary);
     int16_t s = get_state_buttonaxis(i, mapping->secondary);
 
-    if (mapping->primary >= CONTROLLER_AXIS_BEGIN) {
-        float t = mapping->primary < CONTROLLER_LTRIG ? concfg.a2d_threshold 
-                                                      : concfg.a2d_trig;
+    if (mapping->primary.is_axis) {
+        float t = concfg.a2d_threshold;
         p = threshold(p, t) != 0;
     }
 
-    if (mapping->secondary >= CONTROLLER_AXIS_BEGIN) {
-        float t = mapping->secondary < CONTROLLER_LTRIG ? concfg.a2d_threshold 
-                                                        : concfg.a2d_trig;
+    if (mapping->primary.is_axis) {
+        float t = concfg.a2d_threshold;
         s = threshold(s, t) != 0;
     }
 
     return p || s;
 }
 
-static int16_t get_state_mapping_axis(inputs_t *i, ControllerMapping *plus, ControllerMapping *minus)
+static int16_t get_state_mapping_axis(DeviceState *i, ButtonAxisMapping *plus, ButtonAxisMapping *minus)
 {
     int16_t plus_p = get_state_buttonaxis(i, plus->primary);
     int16_t plus_s = get_state_buttonaxis(i, plus->secondary);
@@ -224,19 +172,19 @@ static int16_t get_state_mapping_axis(inputs_t *i, ControllerMapping *plus, Cont
     int16_t minus_p = get_state_buttonaxis(i, minus->primary);
     int16_t minus_s = get_state_buttonaxis(i, minus->secondary);
 
-    if (plus->primary < CONTROLLER_AXIS_BEGIN) {
+    if (!plus->primary.is_axis) {
         plus_p = plus_p * 32767;
     }
 
-    if (plus->secondary < CONTROLLER_AXIS_BEGIN) {
+    if (!plus->secondary.is_axis) {
         plus_s = plus_s * 32767;
     }
 
-    if (minus->primary < CONTROLLER_AXIS_BEGIN) {
+    if (!minus->primary.is_axis) {
         minus_p = minus_p * -32767;
     }
 
-    if (minus->secondary < CONTROLLER_AXIS_BEGIN) {
+    if (!minus->secondary.is_axis) {
         minus_s = minus_s * -32767;
     }
 
@@ -250,13 +198,12 @@ static int16_t get_state_mapping_axis(inputs_t *i, ControllerMapping *plus, Cont
 
 EXPORT void CALL GetKeys(int Control, BUTTONS *Keys)
 {
-    inputs_t i;
     input_initialize();
-    con_get_inputs(&i);
+    auto i = g_input->GetDeviceState(0);
 
     Keys->Value = 0;
 
-    EnterCriticalSection(&critical_section);
+    EnterCriticalSection(&g_critical);
 
     Keys->R_DPAD = get_state_mapping_button(&i, &concfg.dright);
     Keys->L_DPAD = get_state_mapping_button(&i, &concfg.dleft);
@@ -278,7 +225,7 @@ EXPORT void CALL GetKeys(int Control, BUTTONS *Keys)
     int16_t y = get_state_mapping_axis(&i, &concfg.down, &concfg.up);
     scale_and_limit(&x, &y, concfg.deadzone, concfg.outer_edge);
 
-    LeaveCriticalSection(&critical_section);
+    LeaveCriticalSection(&g_critical);
 
     n64_analog(
         Keys,

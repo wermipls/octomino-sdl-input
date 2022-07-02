@@ -2,8 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-#ifndef OCTOMINO_SDL_INPUT_H_
-#define OCTOMINO_SDL_INPUT_H_
+#pragma once
 
 #include <synchapi.h>
 #include <SDL2/SDL_gamecontroller.h>
@@ -12,12 +11,10 @@
 #include <stdio.h>
 #include <limits.h>
 
-extern CRITICAL_SECTION critical_section; 
+extern CRITICAL_SECTION g_critical; 
 
 extern FILE *logfile;
-extern char dbpath[PATH_MAX];
-extern SDL_GameController *con;
-extern int initialized;
+extern HINSTANCE g_hinstance;
 
 #define STRINGIFY(x) #x
 #define TOSTRING(x) STRINGIFY(x)
@@ -66,18 +63,10 @@ typedef struct inputs_t
     int16_t artrig;
 } inputs_t;
 
-int try_init(void);
-void deinit(void);
-void con_open(void);
-void con_close(void);
 int16_t threshold(int16_t val, float cutoff);
 void scale_and_limit(int16_t *x, int16_t *y, float dz, float edge);
 int16_t sclamp(int16_t val, int16_t min, int16_t max);
 int16_t smin(int16_t val, int16_t min);
 int16_t smax(int16_t val, int16_t max);
-void con_get_inputs(inputs_t *i);
 
-void con_write_inputs(inputs_t *i);
 void dlog(const char *fmt, ...);
-
-#endif
