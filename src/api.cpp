@@ -244,7 +244,11 @@ EXPORT void CALL InitiateControllers(HWND hMainWindow, CONTROL Controls[4])
 
 //EXPORT void CALL ReadController(int Control, BYTE * Command) {}
 
-//EXPORT void CALL RomClosed(void) {}
+EXPORT void CALL RomClosed(void) 
+{
+    // Project64 2.x and later: need a dummy function for this
+    // since it became mandatory for whatever reason...
+}
 
 EXPORT void CALL RomOpen(void)
 {
