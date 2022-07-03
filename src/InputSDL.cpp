@@ -121,6 +121,8 @@ int try_init(void)
         return -2;
     }
 
+    con_open();
+
     return 0;
 }
 
