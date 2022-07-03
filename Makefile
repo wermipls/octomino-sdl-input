@@ -14,7 +14,7 @@ ZIPFILES = $(BIN) LICENSE README.md gamecontrollerdb.txt sources.zip
 ZIPSRC   = $(wildcard src/*.cpp) $(wildcard src/*.hpp) $(wildcard src/*.h) Makefile
 
 CC       = i686-w64-mingw32-g++
-OPTFLAGS = -O2 -flto
+OPTFLAGS = -Os -s -flto
 CPPFLAGS = -std=c++17 -MMD -fvisibility=hidden \
            -Wall -Wextra -Wpedantic -Wshadow -Wno-unused-parameter \
            -DPLUGIN_NAME=\""$(NAME)"\" \
@@ -22,7 +22,6 @@ CPPFLAGS = -std=c++17 -MMD -fvisibility=hidden \
            -DPLUGIN_REPO=\""$(REPO)"\"
 LDFLAGS  = -shared -static-libgcc -static \
            -lshlwapi `sdl2-config --static-libs` \
-		   -lopengl32
 
 $(BIN): $(SRC:.cpp=.o)
 	$(CC) $(OPTFLAGS) $(CFLAGS) $^ $(LDFLAGS) -o $@
