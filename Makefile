@@ -17,11 +17,14 @@ CC       = i686-w64-mingw32-g++
 OPTFLAGS = -Os -s -flto
 CPPFLAGS = -std=c++17 -MMD -fvisibility=hidden \
            -Wall -Wextra -Wpedantic -Wshadow -Wno-unused-parameter \
+           `wx-config --cxxflags` \
+           -DUNICODE -D_UNICODE \
            -DPLUGIN_NAME=\""$(NAME)"\" \
            -DPLUGIN_VERSION=\""$(VERSION)"\" \
            -DPLUGIN_REPO=\""$(REPO)"\"
 LDFLAGS  = -shared -static-libgcc -static \
            -lshlwapi `sdl2-config --static-libs` \
+           `wx-config --libs core,base --static`
 
 $(BIN): $(SRC:.cpp=.o)
 	$(CC) $(OPTFLAGS) $(CFLAGS) $^ $(LDFLAGS) -o $@

@@ -11,6 +11,7 @@
 #include "util.hpp"
 #include "InputSDL.hpp"
 #include "config.hpp"
+#include "GUI.hpp"
 
 Input *g_input = nullptr;
 
@@ -84,6 +85,7 @@ EXPORT void CALL DllConfig(HWND hParent)
     dlog("DllConfig() call from thread %d", threadid);
     input_initialize();
     dlog("...done?");
+    config_window(hParent);
 }
 
 //EXPORT void CALL DllTest(HWND hParent) {}
