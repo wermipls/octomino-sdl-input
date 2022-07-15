@@ -4,6 +4,7 @@
 
 #include "GUI.hpp"
 #include "util.hpp"
+#include "config.hpp"
 
 #pragma GCC diagnostic ignored "-Wdeprecated-copy"
     #include <wx/wxprec.h>
@@ -23,10 +24,22 @@ public:
     ConfigDialog(wxWindow *parent);
 
 private:
+    void OnProfileSave(wxCommandEvent &e);
+    void OnProfileLoad(wxCommandEvent &e);
     void OnMappingPrimaryClick(wxCommandEvent &e);
     void control_mapping(wxWindow *parent, wxSizer *sizer, wxString name);
     void control_mapping_box(wxWindow *parent, wxSizer *sizer, int start_id, int end_id, wxString name);
 };
+
+void ConfigDialog::OnProfileSave(wxCommandEvent &e)
+{
+    config_save();
+}
+
+void ConfigDialog::OnProfileLoad(wxCommandEvent &e)
+{
+    config_load();
+}
 
 static const wxString mappings[] = {
     "A",
@@ -66,7 +79,7 @@ void ConfigDialog::OnMappingPrimaryClick(wxCommandEvent &e)
 void ConfigDialog::control_mapping(wxWindow *parent, wxSizer *sizer, wxString name)
 {
     auto *text_name = new wxStaticText(parent, wxID_ANY, name, wxDefaultPosition, wxSize(50, -1));
-    auto *primary = new wxButton(parent, wxID_ANY, "Not set", wxDefaultPosition, wxSize(128, 22));
+    auto *primary = new wxButton(parent, wxID_ANY, "", wxDefaultPosition, wxSize(128, 22));
     auto *secondary = new wxButton(parent, wxID_ANY, "...", wxDefaultPosition, wxSize(22, 22));
 
     sizer->Add(text_name, 0, wxALIGN_CENTER_VERTICAL|wxALL, BORDER_SIZE);
@@ -125,6 +138,9 @@ ConfigDialog::ConfigDialog(wxWindow *parent)
 
     sizer_conf->Add(conf_load, 0, wxALIGN_CENTER_VERTICAL|wxALL, BORDER_SIZE);
     sizer_conf->Add(conf_save, 0, wxALIGN_CENTER_VERTICAL|wxALL, BORDER_SIZE);
+
+    conf_load->Bind(wxEVT_BUTTON, &ConfigDialog::OnProfileLoad, this);
+    conf_save->Bind(wxEVT_BUTTON, &ConfigDialog::OnProfileSave, this);
 
     // main settings
     auto *sizer_settings = new wxBoxSizer(wxHORIZONTAL);
